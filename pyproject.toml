@@ -10,5 +10,6 @@ version = "0.0.1"
 requires-python = ">=3.7"
 dependencies = [
     "nicegui",
-    "injector"
+    "drain3",
+    "marshmallow"
 ]

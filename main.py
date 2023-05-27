@@ -1,9 +1,4 @@
-from src.view import get_view
+from src.view import NiceGuiView
 
 
-def main():
-    get_view().start()
-
-
-if __name__ == "__main__":
-    main()
+NiceGuiView().start()
