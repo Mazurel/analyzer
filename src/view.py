@@ -65,7 +65,10 @@ class NiceGuiView():
 
     def start(self):
         ui.query("body").tailwind.background_color("zinc-200")
-        with ui.row():
+        ui.query(".nicegui-content").tailwind.align_items("center")
+        ui.markdown("# Log analyzer")
+        ui.markdown("Upload Grand truth and checked file to see analysis result")
+        with ui.row() as row:
             LogFileUpload(
                 "Upload Grand Truth file",
                 on_upload=self._handle_grand_truth
