@@ -40,10 +40,6 @@ class LogLine:
         - `0.0` -> This log line is really **unimportant** according to heuristic
         """
         assert 0.0 <= value <= 1.0, "Heuristic `value` must be in range"
-
-        if name in self._heuristics:
-            raise ValueError(f"Heuristic {name} already exists !")
-
         self._heuristics[name] = value
 
     def list_heuristics(self) -> set[str]:

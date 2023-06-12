@@ -33,10 +33,7 @@ class NiceGuiView():
         drain.annotate(self._checked)
 
         heuristics.apply_heuristics(self._grand_truth, self._checked)
- 
-        self._log_view.clear()
-        with self._log_view:
-            self._show_logs()
+        self._show_logs()
  
     def _show_logs(self):
         COLORS = [
@@ -45,24 +42,30 @@ class NiceGuiView():
             "green-500",
             "green-600",
         ]
-        for i, line in enumerate(self._checked.lines):
-            val = 0
-            for heuristic in line.list_heuristics():
-                val = max(val, line.get_heuristic(heuristic))
-            color = COLORS[int(len(COLORS) * val)]
+        
+        self._log_view.clear()
+        with self._log_view:
+            for i, line in enumerate(self._checked.lines):
+                val = 0
+                for heuristic in line.list_heuristics():
+                    val = max(val, line.get_heuristic(heuristic))
 
-            lbl = ui.label(f"{i + 1}: {line.line}")
-            lbl.tailwind.font_family("mono").user_select("none").text_overflow("text-clip").text_color(color)
-            lbl.classes(add="hover:font-bold")
-            with lbl:
-                tooltip_text = [
-                    f"Template: {line.template.pattern}",
-                ]
-                tooltip_text += [
-                    f"{heuristic}: {line.get_heuristic(heuristic)}"
-                    for heuristic in line.list_heuristics()
-                ]
-                ui.tooltip("\n".join(tooltip_text)).tailwind.font_size("base").font_family("mono").whitespace("pre-line")
+                if val < self._heuristic_cap:
+                    continue 
+                color = COLORS[int(len(COLORS) * val)]
+
+                lbl = ui.label(f"{i + 1}: {line.line}")
+                lbl.tailwind.font_family("mono").user_select("none").text_overflow("text-clip").text_color(color)
+                lbl.classes(add="hover:font-bold")
+                with lbl:
+                    tooltip_text = [
+                        f"Template: {line.template.pattern}",
+                    ]
+                    tooltip_text += [
+                        f"{heuristic}: {line.get_heuristic(heuristic)}"
+                        for heuristic in line.list_heuristics()
+                    ]
+                    ui.tooltip("\n".join(tooltip_text)).tailwind.font_size("base").font_family("mono").whitespace("pre-line")
 
     def start(self):
         ui.query("body").tailwind.background_color("zinc-200")
@@ -80,9 +83,11 @@ class NiceGuiView():
                 on_upload=self._handle_checked
             )
 
-        self._heuristic_slider = ui.slider(min=0, max=1, step=0.01, value=self._heuristic_cap).bind_value_to(self, "_heuristic_cap")
+        with ui.row():
+            ui.label("Heristic Cap:")
+            self._heuristic_slider = ui.slider(min=0, max=1, step=0.01, value=self._heuristic_cap, on_change=lambda: self._show_logs()).bind_value_to(self, "_heuristic_cap")
         self._log_view = ui.element("div")
-        self._log_view.tailwind.padding("p-5").container().box_shadow("inner").background_color("zinc-300").height("60")
+        self._log_view.tailwind.padding("p-5").container().box_shadow("inner").background_color("zinc-300").min_height("max")
 
         with ui.element("footer") as el:
             ui.label("This tool is created for Research Project: ").tailwind.display("inline")
