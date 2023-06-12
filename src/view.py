@@ -12,6 +12,7 @@ class NiceGuiView():
     def __init__(self) -> None:
         self._checked = None
         self._grand_truth = None
+        self._heuristic_cap = 0.5
 
     def _handle_grand_truth(self, file: LogFile):
         self._grand_truth = file
@@ -44,13 +45,13 @@ class NiceGuiView():
             "green-500",
             "green-600",
         ]
-        for line in self._checked.lines:
+        for i, line in enumerate(self._checked.lines):
             val = 0
             for heuristic in line.list_heuristics():
                 val = max(val, line.get_heuristic(heuristic))
             color = COLORS[int(len(COLORS) * val)]
 
-            lbl = ui.label(line.line)
+            lbl = ui.label(f"{i + 1}: {line.line}")
             lbl.tailwind.font_family("mono").user_select("none").text_overflow("text-clip").text_color(color)
             lbl.classes(add="hover:font-bold")
             with lbl:
@@ -79,7 +80,12 @@ class NiceGuiView():
                 on_upload=self._handle_checked
             )
 
+        self._heuristic_slider = ui.slider(min=0, max=1, step=0.01, value=self._heuristic_cap).bind_value_to(self, "_heuristic_cap")
         self._log_view = ui.element("div")
-        self._log_view.tailwind.padding("p-5").container().box_shadow("inner").background_color("zinc-300")
+        self._log_view.tailwind.padding("p-5").container().box_shadow("inner").background_color("zinc-300").height("60")
+
+        with ui.element("footer") as el:
+            ui.label("This tool is created for Research Project: ").tailwind.display("inline")
+            ui.link("Discovery and visualization of meaningful information in applications logs", "https://projektgrupowy.eti.pg.gda.pl/editions/18/projects/4881").tailwind.font_style("italic").display("inline")
 
         ui.run()
