@@ -13,3 +13,9 @@ dependencies = [
     "drain3",
     "marshmallow"
 ]
+
+
+[project.optional-dependencies]
+dev = [
+    "black",
+]

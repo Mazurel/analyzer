@@ -1,19 +1,26 @@
-from io import StringIO
+from typing import TYPE_CHECKING
 
 from src.logs.types import LogFile
 from src.views.widgets import LogFileUpload
 from src.logs.drain import DrainManager
 from src.heuristics import manager as heuristics
 
-from nicegui import ui, events, Tailwind
-from nicegui.tailwind_types import font_family
+from nicegui import ui
 
+if TYPE_CHECKING:
+    from nicegui.tailwind_types.text_color import TextColor
+
+HEURISTIC_LABEL_TEXT = "Heuristic Cap ({}): "
 
 class NiceGuiView:
     def __init__(self) -> None:
         self._checked = None
         self._grand_truth = None
         self._heuristic_cap = 0.5
+
+    def _handle_heuristic_cap_change(self):
+        self._heuristic_label.text = HEURISTIC_LABEL_TEXT.format(self._heuristic_cap)
+        self._show_logs()
 
     def _handle_grand_truth(self, file: LogFile):
         self._grand_truth = file
@@ -37,12 +44,16 @@ class NiceGuiView:
         self._show_logs()
 
     def _show_logs(self):
-        COLORS = [
+        COLORS: list[TextColor] = [
             "neutral-500",
             "neutral-500",
             "green-500",
             "green-600",
         ]
+
+        if self._checked is None or self._grand_truth is None:
+            self._show_logs_not_loaded()
+            return
 
         self._log_view.clear()
         with self._log_view:
@@ -72,6 +83,14 @@ class NiceGuiView:
                         "base"
                     ).font_family("mono").whitespace("pre-line")
 
+    def _show_logs_not_loaded(self):
+        if not hasattr(self, "_log_view"):
+            return
+
+        self._log_view.clear()
+        with self._log_view:
+            ui.label("Please provide files above to see logs here !").tailwind.text_align("center").width("full").font_size("lg")
+
     def start(self):
         ui.query("body").tailwind.background_color("zinc-200")
         ui.query(".nicegui-content").tailwind.align_items("center")
@@ -83,20 +102,24 @@ class NiceGuiView:
             LogFileUpload("Upload Checked file", on_upload=self._handle_checked)
 
         with ui.row():
-            ui.label("Heristic Cap:")
+            self._heuristic_label = ui.label()
             self._heuristic_slider = ui.slider(
                 min=0,
                 max=1,
                 step=0.01,
                 value=self._heuristic_cap,
-                on_change=lambda: self._show_logs(),
-            ).bind_value_to(self, "_heuristic_cap")
+                on_change=self._handle_heuristic_cap_change,
+            ).bind_value_to(self, "_heuristic_cap").tailwind.width("40")
+            self._handle_heuristic_cap_change()
+
         self._log_view = ui.element("div")
         self._log_view.tailwind.padding("p-5").container().box_shadow(
             "inner"
         ).background_color("zinc-300").min_height("max")
+        self._show_logs_not_loaded()
 
         with ui.element("footer") as el:
+            el.tailwind.margin("mt-10")
             ui.label("This tool is created for Research Project: ").tailwind.display(
                 "inline"
             )
