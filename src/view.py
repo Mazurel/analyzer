@@ -8,7 +8,8 @@ from src.heuristics import manager as heuristics
 from nicegui import ui, events, Tailwind
 from nicegui.tailwind_types import font_family
 
-class NiceGuiView():
+
+class NiceGuiView:
     def __init__(self) -> None:
         self._checked = None
         self._grand_truth = None
@@ -21,11 +22,11 @@ class NiceGuiView():
     def _handle_checked(self, file: LogFile):
         self._checked = file
         self._update_log_visualization()
-    
+
     def _update_log_visualization(self):
         if self._checked is None or self._grand_truth is None:
             return
-        
+
         drain = DrainManager()
         drain.learn(self._grand_truth)
         drain.learn(self._checked)
@@ -34,7 +35,7 @@ class NiceGuiView():
 
         heuristics.apply_heuristics(self._grand_truth, self._checked)
         self._show_logs()
- 
+
     def _show_logs(self):
         COLORS = [
             "neutral-500",
@@ -42,7 +43,7 @@ class NiceGuiView():
             "green-500",
             "green-600",
         ]
-        
+
         self._log_view.clear()
         with self._log_view:
             for i, line in enumerate(self._checked.lines):
@@ -51,11 +52,13 @@ class NiceGuiView():
                     val = max(val, line.get_heuristic(heuristic))
 
                 if val < self._heuristic_cap:
-                    continue 
+                    continue
                 color = COLORS[int(len(COLORS) * val)]
 
                 lbl = ui.label(f"{i + 1}: {line.line}")
-                lbl.tailwind.font_family("mono").user_select("none").text_overflow("text-clip").text_color(color)
+                lbl.tailwind.font_family("mono").user_select("none").text_overflow(
+                    "text-clip"
+                ).text_color(color)
                 lbl.classes(add="hover:font-bold")
                 with lbl:
                     tooltip_text = [
@@ -65,7 +68,9 @@ class NiceGuiView():
                         f"{heuristic}: {line.get_heuristic(heuristic)}"
                         for heuristic in line.list_heuristics()
                     ]
-                    ui.tooltip("\n".join(tooltip_text)).tailwind.font_size("base").font_family("mono").whitespace("pre-line")
+                    ui.tooltip("\n".join(tooltip_text)).tailwind.font_size(
+                        "base"
+                    ).font_family("mono").whitespace("pre-line")
 
     def start(self):
         ui.query("body").tailwind.background_color("zinc-200")
@@ -73,24 +78,31 @@ class NiceGuiView():
         ui.markdown("# Log analyzer")
         ui.markdown("Upload Grand truth and checked file to see analysis result")
         with ui.row() as row:
-            LogFileUpload(
-                "Upload Grand Truth file",
-                on_upload=self._handle_grand_truth
-            ) 
+            LogFileUpload("Upload Grand Truth file", on_upload=self._handle_grand_truth)
 
-            LogFileUpload(
-                "Upload Checked file",
-                on_upload=self._handle_checked
-            )
+            LogFileUpload("Upload Checked file", on_upload=self._handle_checked)
 
         with ui.row():
             ui.label("Heristic Cap:")
-            self._heuristic_slider = ui.slider(min=0, max=1, step=0.01, value=self._heuristic_cap, on_change=lambda: self._show_logs()).bind_value_to(self, "_heuristic_cap")
+            self._heuristic_slider = ui.slider(
+                min=0,
+                max=1,
+                step=0.01,
+                value=self._heuristic_cap,
+                on_change=lambda: self._show_logs(),
+            ).bind_value_to(self, "_heuristic_cap")
         self._log_view = ui.element("div")
-        self._log_view.tailwind.padding("p-5").container().box_shadow("inner").background_color("zinc-300").min_height("max")
+        self._log_view.tailwind.padding("p-5").container().box_shadow(
+            "inner"
+        ).background_color("zinc-300").min_height("max")
 
         with ui.element("footer") as el:
-            ui.label("This tool is created for Research Project: ").tailwind.display("inline")
-            ui.link("Discovery and visualization of meaningful information in applications logs", "https://projektgrupowy.eti.pg.gda.pl/editions/18/projects/4881").tailwind.font_style("italic").display("inline")
+            ui.label("This tool is created for Research Project: ").tailwind.display(
+                "inline"
+            )
+            ui.link(
+                "Discovery and visualization of meaningful information in applications logs",
+                "https://projektgrupowy.eti.pg.gda.pl/editions/18/projects/4881",
+            ).tailwind.font_style("italic").display("inline")
 
         ui.run()
