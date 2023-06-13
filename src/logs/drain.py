@@ -43,22 +43,19 @@ class DrainManager:
     def __init__(self) -> None:
         self.config = TemplateMinerConfig()
         self.config.drain_depth = 15
-        self.config.drain_sim_th = .2
+        self.config.drain_sim_th = 0.2
         self.miner = TemplateMiner(None, self.config)
-    
+
     def learn(self, file: LogFile):
         for line in file.lines:
             self.miner.add_log_message(line.line)
-    
+
     def build_templates(self):
         self.templates = {
-            cluster.cluster_id: Template(
-                cluster.cluster_id,
-                cluster.get_template()
-            )
+            cluster.cluster_id: Template(cluster.cluster_id, cluster.get_template())
             for cluster in self.miner.drain.clusters
         }
- 
+
     def annotate(self, file: LogFile):
         self.build_templates()
         for line in file.lines:

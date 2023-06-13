@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 HEURISTIC_LABEL_TEXT = "Heuristic Cap ({}): "
 
+
 class NiceGuiView:
     def __init__(self) -> None:
         self._checked = None
@@ -89,7 +90,9 @@ class NiceGuiView:
 
         self._log_view.clear()
         with self._log_view:
-            ui.label("Please provide files above to see logs here !").tailwind.text_align("center").width("full").font_size("lg")
+            ui.label(
+                "Please provide files above to see logs here !"
+            ).tailwind.text_align("center").width("full").font_size("lg")
 
     def start(self):
         ui.query("body").tailwind.background_color("zinc-200")
@@ -103,13 +106,17 @@ class NiceGuiView:
 
         with ui.row():
             self._heuristic_label = ui.label()
-            self._heuristic_slider = ui.slider(
-                min=0,
-                max=1,
-                step=0.01,
-                value=self._heuristic_cap,
-                on_change=self._handle_heuristic_cap_change,
-            ).bind_value_to(self, "_heuristic_cap").tailwind.width("40")
+            self._heuristic_slider = (
+                ui.slider(
+                    min=0,
+                    max=1,
+                    step=0.01,
+                    value=self._heuristic_cap,
+                    on_change=self._handle_heuristic_cap_change,
+                )
+                .bind_value_to(self, "_heuristic_cap")
+                .tailwind.width("40")
+            )
             self._handle_heuristic_cap_change()
 
         self._log_view = ui.element("div")

@@ -17,9 +17,7 @@ class LogFileUpload(ui.upload):
 
         self._on_upload(log_file)
 
-    def __init__(self,
-                 label: str,
-                 on_upload: Callable[[LogFile], None]):
+    def __init__(self, label: str, on_upload: Callable[[LogFile], None]):
         super().__init__(
             label=label,
             on_upload=self._parse_file,
