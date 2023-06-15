@@ -14,10 +14,6 @@ class HeuristicSetup(View):
     heuristic_cap: float = 0.5
     label: Optional[Label] = None
 
-    def update_content(self, sender=None):
-        assert self.label is not None
-        self.label.text = f"Heuristic Cap ({self.heuristic_cap}): "
-
     def show(self, _: Element):
         self.label = ui.label()
         self._heuristic_slider = (
@@ -31,8 +27,8 @@ class HeuristicSetup(View):
             .bind_value_to(self, "heuristic_cap")
             .tailwind.width("40")
         )
-        self.state_changed.connect(self.update_content)
-        self.update_content()
+        self.state_changed.connect(self.update)
 
     def update(self, sender: object = None):
-        self.update_content()
+        assert self.label is not None
+        self.label.text = f"Heuristic Cap ({self.heuristic_cap}): "        
