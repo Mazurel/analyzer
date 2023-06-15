@@ -28,6 +28,7 @@ class HeuristicSetup(View):
             .tailwind.width("40")
         )
         self.state_changed.connect(self.update)
+        self.update()
 
     def update(self, sender: object = None):
         assert self.label is not None
