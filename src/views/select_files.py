@@ -1,9 +1,8 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Optional
 
-from nicegui.element import Element
-from blinker import Signal
+from nicegui import ui
 
 from src.logs.types import LogFile
 from src.views import View
@@ -16,7 +15,6 @@ class SelectFiles(View):
         FILES_UPLOADED = auto()
         FILES_NOT_UPLOADED = auto()
 
-    state_changed: Signal = field(default_factory=lambda: Signal())
     state: State = State.FILES_NOT_UPLOADED
     grand_truth: Optional[LogFile] = None
     checked: Optional[LogFile] = None
@@ -37,9 +35,11 @@ class SelectFiles(View):
         self.checked = file
         self._emit_state_changed()
 
-    def show(self, container: Element):
-        LogFileUpload("Upload Grand Truth file", on_upload=self._handle_grand_truth)
-        LogFileUpload("Upload Checked file", on_upload=self._handle_checked)
+    def show(self):
+        with ui.row() as r:
+            LogFileUpload("Upload Grand Truth file", on_upload=self._handle_grand_truth)
+            LogFileUpload("Upload Checked file", on_upload=self._handle_checked)
+        return r
 
     def update(self, sender: object = None):
         pass

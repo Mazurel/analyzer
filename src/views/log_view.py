@@ -1,36 +1,41 @@
 from dataclasses import dataclass
 
-from src.logs.drain import DrainManager
 from src.heuristics import manager as heuristics
-from src.views import View, HeuristicSetup, SelectFiles
+from src.views import View, HeuristicSetup, SelectFiles, DrainSetup
 
 from nicegui import ui
-from nicegui.element import Element
 from nicegui.tailwind_types.text_color import TextColor
 
 
 @dataclass
 class LogView(View):
+    drain_setup: DrainSetup
     heuristic_setup: HeuristicSetup
     select_files: SelectFiles
 
-    def update_log_visualization(self, container: Element):
-        container.tailwind.padding("p-5").container().box_shadow(
+    _drain_needs_calculation: bool = False
+
+    def update_log_visualization(self):
+        self.parent.tailwind.padding("p-5").container().box_shadow(
             "inner"
         ).background_color("zinc-300").min_height("max")
 
         if self.select_files.state == SelectFiles.State.FILES_NOT_UPLOADED:
-            self._show_logs_not_loaded(container)
+            self._show_logs_not_loaded()
             return
+        
+        if self._drain_needs_calculation:
+            self._recalculate_drain()
 
+        self._show_logs()
+    
+    def _recalculate_drain(self):
         assert (
             self.select_files.grand_truth is not None
             and self.select_files.checked is not None
         )
 
-        # Apply drain
-        # TODO: this will need to be abstracted away int the futuer
-        drain = DrainManager()
+        drain = self.drain_setup.build_drain()
         drain.learn(self.select_files.grand_truth)
         drain.learn(self.select_files.checked)
         drain.annotate(self.select_files.grand_truth)
@@ -38,14 +43,15 @@ class LogView(View):
         heuristics.apply_heuristics(
             self.select_files.grand_truth, self.select_files.checked
         )
-        self._show_logs(container)
+        self._drain_needs_calculation = False
+        
 
-    def _show_logs_not_loaded(self, log_view: Element):
+    def _show_logs_not_loaded(self):
         ui.label("Please provide files above to see logs here !").tailwind.text_align(
             "center"
         ).width("full").font_size("lg")
 
-    def _show_logs(self, log_view: Element):
+    def _show_logs(self):
         COLORS: list[TextColor] = [
             "neutral-500",
             "neutral-500",
@@ -82,13 +88,18 @@ class LogView(View):
                     "base"
                 ).font_family("mono").whitespace("pre-line")
 
-    def show(self, container: Element):
-        self.parent = container
+    def show(self):
+        self.parent = ui.element("div")
         self.heuristic_setup.state_changed.connect(self.update, weak=False)
         self.select_files.state_changed.connect(self.update, weak=False)
-        self.update_log_visualization(container)
+        self.drain_setup.state_changed.connect(self.update, weak=False)
+        with self.parent:
+            self.update_log_visualization()
 
     def update(self, sender: object = None):
+        if isinstance(sender, (SelectFiles, DrainSetup)):
+            self._drain_needs_calculation = True
+
         self.parent.clear()
         with self.parent:
-            self.update_log_visualization(self.parent)
+            self.update_log_visualization()

@@ -1,7 +1,15 @@
-from .view import show_in, View
-from .footer import Footer
+from .view import View
 from .select_files import SelectFiles
 from .heuristic_setup import HeuristicSetup
+from .drain_setup import DrainSetup
 from .log_view import LogView
+from .footer import Footer
 
-__all__ = ["View", "Footer", "HeuristicSetup", "SelectFiles", "LogView", "show_in"]
+__all__ = [
+    "View",
+    "Footer",
+    "HeuristicSetup",
+    "SelectFiles",
+    "LogView",
+    "DrainSetup",
+]

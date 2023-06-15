@@ -1,15 +1,21 @@
-from typing import Protocol
+from dataclasses import dataclass
 
+from blinker import Signal
 from nicegui.element import Element
 
-class View(Protocol):
-    def show(self, container: Element):
+
+@dataclass
+class View:
+    def __post_init__(self):
+        self.state_changed = Signal()
+        self.state_changed.connect(self.update)
+
+    def show(self) -> Element:
         '''
-        Show the view inside given `container`.
-        If the view needs to access this element in the future,
-        it should store it inside its state.
+        Show the view inside into view-initialized container.
+        This method should return root of such object.
         '''
-        ...
+        raise NotImplementedError()
 
     def update(self, sender: object = None):
         '''
@@ -18,8 +24,5 @@ class View(Protocol):
         It also has sender object parameter based on which user can check who has triggered the update.
         It is designed to work with `blinker`.
         '''
-        ...
+        pass
 
-def show_in(container: Element, view: View):
-    with container:
-        view.show(container)

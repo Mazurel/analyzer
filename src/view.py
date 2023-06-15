@@ -1,4 +1,4 @@
-from src.views import Footer, SelectFiles, HeuristicSetup, LogView, show_in
+from src.views import Footer, SelectFiles, HeuristicSetup, LogView, DrainSetup
 
 from nicegui import ui
 
@@ -12,13 +12,19 @@ class NiceGuiView:
         ui.markdown("Upload Grand truth and checked file to see analysis result")
 
         self.file_select = SelectFiles()
+        self.drain_setup = DrainSetup()
         self.heuristic_setup = HeuristicSetup()
-        self.log_view = LogView(self.heuristic_setup, self.file_select)
+        self.log_view = LogView(
+            drain_setup=self.drain_setup,
+            heuristic_setup=self.heuristic_setup,
+            select_files=self.file_select,
+        )
         self.footer = Footer()
 
-        show_in(ui.row(), self.file_select)
-        show_in(ui.row(), self.heuristic_setup)
-        show_in(ui.element("div"), self.log_view)
-        show_in(ui.element("footer"), self.footer)
+        self.file_select.show()
+        self.drain_setup.show()
+        self.heuristic_setup.show()
+        self.log_view.show()
+        self.footer.show()
 
         ui.run()
