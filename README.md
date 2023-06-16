@@ -1,3 +1,8 @@
+# Log analyzer
+
+This is a repo for our reasearch project 5@KAMS.
+
+![Homepage](./imgs/homepage.png)
 
 ## Local installation
 
