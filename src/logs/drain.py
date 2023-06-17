@@ -40,11 +40,8 @@ class DrainSettingsSchema(Schema):
 
 
 class DrainManager:
-    def __init__(self) -> None:
-        self.config = TemplateMinerConfig()
-        self.config.drain_depth = 15
-        self.config.drain_sim_th = 0.2
-        self.miner = TemplateMiner(None, self.config)
+    def __init__(self, config: TemplateMinerConfig) -> None:
+        self.miner = TemplateMiner(None, config)
 
     def learn(self, file: LogFile):
         for line in file.lines:
