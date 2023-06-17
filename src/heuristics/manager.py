@@ -7,6 +7,8 @@ HEURISTICS: list[tuple[str, Heuristic]] = [("Histogram", HistogramHeuristic)]
 
 
 def apply_heuristics(grand_truth: LogFile, checked: LogFile):
+    grand_truth.clear_heuristics()
+    checked.clear_heuristics()
     for name, heuristic_type in HEURISTICS:
         heuristic = heuristic_type()
         heuristic.load_grand_truth(grand_truth)

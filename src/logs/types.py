@@ -44,6 +44,9 @@ class LogLine:
 
     def list_heuristics(self) -> set[str]:
         return set(self._heuristics.keys())
+    
+    def clear_heuristics(self):
+        self._heuristics.clear()
 
     def get_heuristic(self, name: str) -> float:
         if name not in self._heuristics:
@@ -59,3 +62,7 @@ class LogFile:
     @property
     def lines(self) -> list[LogLine]:
         return self._lines
+
+    def clear_heuristics(self):
+        for line in self.lines:
+            line.clear_heuristics()
