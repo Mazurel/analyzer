@@ -76,7 +76,7 @@ class DrainSetup(View):
             ).border_radius("lg")
             with ui.grid(columns=2):
                 self.dd_label = ui.label(LABEL_TEXT_1.format(self.drain_depth))
-                ui.slider(
+                self.dd_slider = ui.slider(
                     min=2,
                     max=30,
                     step=1,
@@ -86,10 +86,11 @@ class DrainSetup(View):
                     lambda: self.state_changed.send(self),
                     throttle=1.0,
                     leading_events=False,
-                ).bind_value_to(self, "drain_depth").tailwind.width("40")
+                ).bind_value_to(self, "drain_depth")
+                self.dd_slider.tailwind.width("40")
 
                 self.dst_label = ui.label(LABEL_TEXT_2.format(self.drain_sim_th))
-                ui.slider(
+                self.dst_slider = ui.slider(
                     min=0,
                     max=1,
                     step=0.01,
@@ -99,7 +100,8 @@ class DrainSetup(View):
                     lambda: self.state_changed.send(self),
                     throttle=1.0,
                     leading_events=False,
-                ).bind_value_to(self, "drain_sim_th").tailwind.width("40")
+                ).bind_value_to(self, "drain_sim_th")
+                self.dst_slider.tailwind.width("40")
 
             self.masking_instructions_container = ui.element("div")
             self.masking_n = ui.number(
@@ -137,7 +139,9 @@ class DrainSetup(View):
     def update(self, sender: object = None):
         self.masking_instructions_amount = max(0, self.masking_instructions_amount)
         self.dd_label.text = LABEL_TEXT_1.format(self.drain_depth)
+        self.dd_slider.value = self.drain_depth
         self.dst_label.text = LABEL_TEXT_2.format(self.drain_sim_th)
+        self.dst_slider.value = self.drain_sim_th
         self.masking_n.value = self.masking_instructions_amount
 
         with self.masking_instructions_container:
