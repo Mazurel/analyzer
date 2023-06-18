@@ -1,12 +1,18 @@
 from dataclasses import dataclass, field
+from io import StringIO
+from typing import Any
+from uuid import uuid4
+import toml
+from os.path import join
 
-from nicegui import ui
+from nicegui import ui, app, events
 from nicegui.element import Element
 
 from drain3.template_miner_config import TemplateMinerConfig
 
 from src.views import View
-from src.logs.drain import DrainManager, MaskingInstruction
+from src.logs.drain import DrainManager, MaskingInstruction, DrainSettingsSchema
+from src.consts import CONFIGS_FOLDER
 
 LABEL_TEXT_1 = "Drain depth ({}): "
 LABEL_TEXT_2 = "Drain Simmilarity threshold ({}): "
@@ -21,11 +27,11 @@ class MaskingInstructionSelection(View):
     def show(self) -> Element:
         with ui.grid(1, 2) as el:
             el.tailwind.width("full")
-            ui.input(
+            self.l1 = ui.input(
                 label="Masking instruction name",
                 on_change=lambda: self.state_changed.send(self),
             ).bind_value_to(self, "instruction_name")
-            ui.input(
+            self.l2 = ui.input(
                 label="Masking instruction regex",
                 on_change=lambda: self.state_changed.send(self),
             ).bind_value_to(self, "instruction_regex")
@@ -33,10 +39,20 @@ class MaskingInstructionSelection(View):
         return el
 
     def update(self, sender: object = None):
+        self.l1.value = self.instruction_name
+        self.l2.value = self.instruction_regex
+
         self.ready = len(self.instruction_name) > 0 and len(self.instruction_regex) > 0
 
-    def get_instruction(self):
+    @property
+    def instruction(self):
         return MaskingInstruction(self.instruction_regex, self.instruction_name)
+
+    @instruction.setter
+    def instruction(self, val: MaskingInstruction):
+        self.instruction_regex = val.pattern
+        self.instruction_name = val.mask_with
+        self.state_changed.send(self)
 
 
 @dataclass
@@ -81,18 +97,48 @@ class DrainSetup(View):
                 ).bind_value_to(self, "drain_sim_th").tailwind.width("40")
 
             self.masking_instructions_container = ui.element("div")
-            ui.number(
+            self.masking_n = ui.number(
                 "Masking instructions",
                 value=self.masking_instructions_amount,
                 on_change=self.update,
             ).bind_value_to(self, "masking_instructions_amount")
+
+            with ui.row():
+                with ui.dialog() as dialog:
+
+                    def on_file(event: events.UploadEventArguments):
+                        try:
+                            buffer = StringIO(event.content.read().decode("utf-8"))
+                            self.load_config(buffer.read())
+                            dialog.close()
+                        except Exception as ex:
+                            ui.notify(f"Uploading config file failed with: {str(ex)}")
+                            return
+
+                    dialog.tailwind.padding("p-40")
+                    ui.upload(
+                        label="Upload file here",
+                        on_upload=on_file,
+                        auto_upload=True,
+                        max_files=1,
+                    )
+                ui.button("Load", on_click=dialog.open)
+                ui.button("Save", on_click=lambda: self.saveconfig())
+
         return outer
 
     def update(self, sender: object = None):
+        self.masking_instructions_amount = max(0, self.masking_instructions_amount)
+
         self.dd_label.text = LABEL_TEXT_1.format(self.drain_depth)
         self.dst_label.text = LABEL_TEXT_2.format(self.drain_sim_th)
+        self.masking_n.value = self.masking_instructions_amount
 
         with self.masking_instructions_container:
+            while self.masking_instructions_amount < len(self.masking_instructions):
+                del self.masking_instructions[-1]
+                self.masking_instructions.pop()
+
             while self.masking_instructions_amount > len(self.masking_instructions):
                 masking_instruction = MaskingInstructionSelection()
                 masking_instruction.show()
@@ -101,14 +147,45 @@ class DrainSetup(View):
                 )
                 self.masking_instructions.append(masking_instruction)
 
-    def build_drain(self) -> DrainManager:
+    def build_drain_config(self) -> TemplateMinerConfig:
         config = TemplateMinerConfig()
         config.drain_sim_th = self.drain_sim_th
         config.drain_depth = self.drain_depth
+        config.masking_instructions = [
+            instruction.instruction
+            for instruction in self.masking_instructions
+            if instruction.ready
+        ]
+        return config
 
-        config.masking_instructions.clear()
-        for instruction in self.masking_instructions:
-            if instruction.ready:
-                config.masking_instructions.append(instruction.get_instruction())
+    def build_drain(self) -> DrainManager:
+        return DrainManager(self.build_drain_config())
 
-        return DrainManager(config)
+    def saveconfig(self):
+        schema = DrainSettingsSchema()
+        dump: dict = schema.dump(self.build_drain_config())
+        config_path = join(CONFIGS_FOLDER, f"{uuid4()}.toml")
+        with open(config_path, "w") as f:
+            toml.dump(dump, f)
+
+        ui.download(config_path)
+
+    def load_config(self, config: str):
+        schema = DrainSettingsSchema()
+        obj = toml.loads(config)
+        parsed_config: dict[str, Any] = schema.load(obj)
+        self.drain_depth = parsed_config.get("drain_depth")
+        self.drain_sim_th = parsed_config.get("drain_sim_th")
+
+        self.masking_instructions.clear()
+        with self.masking_instructions_container:
+            for instr in parsed_config.get("masking_instructions"):
+                instruction = MaskingInstructionSelection()
+                instruction.show()
+                instruction.instruction = instr
+                instruction.state_changed.connect(
+                    lambda _: self.state_changed.send(self), weak=False
+                )
+                self.masking_instructions.append(instruction)
+            self.masking_instructions_amount = len(self.masking_instructions)
+        self.state_changed.send(self)
