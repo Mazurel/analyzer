@@ -1,10 +1,13 @@
 from src.views import Footer, SelectFiles, HeuristicSetup, LogView, DrainSetup
+from src.consts import CONFIGS_FOLDER
 
-from nicegui import ui
+from nicegui import ui, app
 
 
 class NiceGuiView:
     def start(self):
+        app.add_static_files("/configs", "configs/")
+
         ui.query("body").tailwind.background_color("zinc-200")
         ui.query(".nicegui-content").tailwind.align_items("center")
 

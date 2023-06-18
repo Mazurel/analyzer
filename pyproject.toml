@@ -12,7 +12,8 @@ dependencies = [
     "nicegui",
     "drain3",
     "marshmallow",
-    "blinker"
+    "blinker",
+    "toml"
 ]
 
 
