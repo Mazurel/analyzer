@@ -36,6 +36,7 @@ class MaskingInstructionSelection(View):
                 on_change=lambda: self.state_changed.send(self),
             ).bind_value_to(self, "instruction_regex")
 
+        self.container = el
         return el
 
     def update(self, sender: object = None):
@@ -53,6 +54,10 @@ class MaskingInstructionSelection(View):
         self.instruction_regex = val.pattern
         self.instruction_name = val.mask_with
         self.state_changed.send(self)
+    
+    def clear(self):
+        self.container.clear()
+        del self.container
 
 
 @dataclass
@@ -103,7 +108,9 @@ class DrainSetup(View):
                 on_change=self.update,
             ).bind_value_to(self, "masking_instructions_amount")
 
-            with ui.row():
+            with ui.row() as el:
+                el.tailwind.margin("mt-2")
+
                 with ui.dialog() as dialog:
 
                     def on_file(event: events.UploadEventArguments):
@@ -129,15 +136,13 @@ class DrainSetup(View):
 
     def update(self, sender: object = None):
         self.masking_instructions_amount = max(0, self.masking_instructions_amount)
-
         self.dd_label.text = LABEL_TEXT_1.format(self.drain_depth)
         self.dst_label.text = LABEL_TEXT_2.format(self.drain_sim_th)
         self.masking_n.value = self.masking_instructions_amount
 
         with self.masking_instructions_container:
             while self.masking_instructions_amount < len(self.masking_instructions):
-                del self.masking_instructions[-1]
-                self.masking_instructions.pop()
+                self.masking_instructions.pop().clear()
 
             while self.masking_instructions_amount > len(self.masking_instructions):
                 masking_instruction = MaskingInstructionSelection()
@@ -177,7 +182,10 @@ class DrainSetup(View):
         self.drain_depth = parsed_config.get("drain_depth")
         self.drain_sim_th = parsed_config.get("drain_sim_th")
 
+        for i in self.masking_instructions:
+            i.clear()
         self.masking_instructions.clear()
+
         with self.masking_instructions_container:
             for instr in parsed_config.get("masking_instructions"):
                 instruction = MaskingInstructionSelection()
