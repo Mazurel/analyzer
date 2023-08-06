@@ -1,4 +1,3 @@
-from src.view import NiceGuiView
+from src.view import start
 
-
-NiceGuiView().start()
+start()
