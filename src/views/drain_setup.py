@@ -5,14 +5,14 @@ from uuid import uuid4
 import toml
 from os.path import join
 
-from nicegui import ui, app, events
+from nicegui import ui, events
 from nicegui.element import Element
 
 from drain3.template_miner_config import TemplateMinerConfig
 
 from src.views import View
 from src.logs.drain import DrainManager, MaskingInstruction, DrainSettingsSchema
-from src.consts import CONFIGS_FOLDER
+from src.consts import CONFIGS_LOCAL_PATH
 
 LABEL_TEXT_1 = "Drain depth ({}): "
 LABEL_TEXT_2 = "Drain Simmilarity threshold ({}): "
@@ -173,7 +173,7 @@ class DrainSetup(View):
     def saveconfig(self):
         schema = DrainSettingsSchema()
         dump: dict = schema.dump(self.build_drain_config())
-        config_path = join(CONFIGS_FOLDER, f"{uuid4()}.toml")
+        config_path = join(CONFIGS_LOCAL_PATH, f"{uuid4()}.toml")
         with open(config_path, "w") as f:
             toml.dump(dump, f)
 

@@ -1,19 +1,12 @@
+import uuid
+
 from src.views import Footer, SelectFiles, HeuristicSetup, SmartLogView, DrainSetup
-from src.consts import CONFIGS_FOLDER
 
 from nicegui import ui, app
 
 
-class NiceGuiView:
-    def start(self):
-        app.add_static_files("/configs", "configs/")
-
-        ui.query("body").tailwind.background_color("zinc-200")
-        ui.query(".nicegui-content").tailwind.align_items("center")
-
-        ui.markdown("# Log analyzer")
-        ui.markdown("Upload Grand truth and checked file to see analysis result")
-
+class State:
+    def __init__(self) -> None:
         self.file_select = SelectFiles()
         self.drain_setup = DrainSetup()
         self.heuristic_setup = HeuristicSetup()
@@ -24,10 +17,41 @@ class NiceGuiView:
         )
         self.footer = Footer()
 
-        self.file_select.show()
-        self.drain_setup.show()
-        self.heuristic_setup.show()
-        self.log_view.show()
-        self.footer.show()
 
-        ui.run()
+states: dict[uuid.UUID, State] = {}
+
+
+@ui.page("/")
+def index():
+    try:
+        user_id = uuid.UUID(app.storage.browser.get("id"))
+        if not isinstance(user_id, uuid.UUID):
+            raise KeyError()
+    except KeyError:
+        user_id = uuid.uuid4()
+        app.storage.browser["id"] = str(user_id)
+
+    if user_id in states.keys():
+        state = states[user_id]
+    else:
+        state = State()
+        states[user_id] = state
+        print(f"USER ID = {user_id}, new state !")
+
+    ui.query("body").tailwind.background_color("zinc-200")
+    ui.query(".nicegui-content").tailwind.align_items("center")
+
+    ui.markdown("# Log analyzer")
+    ui.markdown("Upload Grand truth and checked file to see analysis result")
+
+    state.file_select.show()
+    state.drain_setup.show()
+    state.heuristic_setup.show()
+    state.log_view.show()
+    state.footer.show()
+
+
+def start():
+    app.add_static_files("/configs", "configs/")
+    # TODO: Use better secret
+    ui.run(storage_secret="123")
