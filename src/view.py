@@ -1,4 +1,4 @@
-from src.views import Footer, SelectFiles, HeuristicSetup, LogView, DrainSetup
+from src.views import Footer, SelectFiles, HeuristicSetup, SmartLogView, DrainSetup
 from src.consts import CONFIGS_FOLDER
 
 from nicegui import ui, app
@@ -17,7 +17,7 @@ class NiceGuiView:
         self.file_select = SelectFiles()
         self.drain_setup = DrainSetup()
         self.heuristic_setup = HeuristicSetup()
-        self.log_view = LogView(
+        self.log_view = SmartLogView(
             drain_setup=self.drain_setup,
             heuristic_setup=self.heuristic_setup,
             select_files=self.file_select,

@@ -3,6 +3,7 @@ from .select_files import SelectFiles
 from .heuristic_setup import HeuristicSetup
 from .drain_setup import DrainSetup
 from .log_view import LogView
+from .smart_log_view import SmartLogView
 from .footer import Footer
 
 __all__ = [
@@ -10,6 +11,6 @@ __all__ = [
     "Footer",
     "HeuristicSetup",
     "SelectFiles",
-    "LogView",
+    "SmartLogView",
     "DrainSetup",
 ]
