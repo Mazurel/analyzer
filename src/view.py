@@ -1,8 +1,17 @@
 import uuid
+import logging
+import sys
 
 from src.views import Footer, SelectFiles, HeuristicSetup, SmartLogView, DrainSetup
 
 from nicegui import ui, app
+
+logging.basicConfig(
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+    ],
+    level=logging.DEBUG,
+)
 
 
 class State:
@@ -23,6 +32,7 @@ states: dict[uuid.UUID, State] = {}
 
 @ui.page("/")
 def index():
+    logger = logging.getLogger("index")
     try:
         user_id = uuid.UUID(app.storage.browser.get("id"))
         if not isinstance(user_id, uuid.UUID):
@@ -36,7 +46,7 @@ def index():
     else:
         state = State()
         states[user_id] = state
-        print(f"USER ID = {user_id}, new state !")
+        logger.info(f"New state for user {user_id} !")
 
     ui.query("body").tailwind.background_color("zinc-200")
     ui.query(".nicegui-content").tailwind.align_items("center")
@@ -49,6 +59,8 @@ def index():
     state.heuristic_setup.show()
     state.log_view.show()
     state.footer.show()
+
+    logger.info("Succesfully initialized")
 
 
 def start():
