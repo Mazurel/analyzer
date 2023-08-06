@@ -1,3 +1,4 @@
+import sys
 import pytest
 
-pytest.main(["--pyargs", "src"])
+sys.exit(pytest.main(["--pyargs", "src"]))
