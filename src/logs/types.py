@@ -7,7 +7,7 @@ from dataclasses import dataclass
 class Template:
     id: int
     pattern: str
-    name: str | None = None
+    name: Optional[str] = None
 
 
 class LogLine:
