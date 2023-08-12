@@ -44,9 +44,12 @@ class LogLine:
 
     def list_heuristics(self) -> set[str]:
         return set(self._heuristics.keys())
-    
+
     def clear_heuristics(self):
         self._heuristics.clear()
+
+    def has_heuristic(self, name: str) -> bool:
+        return name in self._heuristics.keys()
 
     def get_heuristic(self, name: str) -> float:
         if name not in self._heuristics:
