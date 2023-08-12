@@ -17,7 +17,7 @@ logging.basicConfig(
 class State:
     def __init__(self) -> None:
         self.file_select = SelectFiles()
-        self.drain_setup = DrainSetup()
+        self.drain_setup = DrainSetup(select_files=self.file_select)
         self.heuristic_setup = HeuristicSetup()
         self.log_view = SmartLogView(
             drain_setup=self.drain_setup,

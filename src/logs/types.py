@@ -1,4 +1,4 @@
-from typing import Optional, TextIO
+from typing import Optional, TextIO, NamedTuple
 
 from dataclasses import dataclass
 
@@ -66,3 +66,8 @@ class LogFile:
     def clear_heuristics(self):
         for line in self.lines:
             line.clear_heuristics()
+
+
+class MaskingInstruction(NamedTuple):
+    name: str
+    regex: str

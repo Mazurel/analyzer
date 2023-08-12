@@ -4,6 +4,7 @@ from typing import Any
 from uuid import uuid4
 import toml
 from os.path import join
+import logging
 
 from nicegui import ui, events
 from nicegui.element import Element
@@ -13,10 +14,13 @@ from drain3.template_miner_config import TemplateMinerConfig
 from src.views import View
 from src.logs.drain import DrainManager, MaskingInstruction, DrainSettingsSchema
 from src.consts import CONFIGS_LOCAL_PATH
+from src.views.select_files import SelectFiles
+from src.logs.finder import find_masking_instructions
 
 LABEL_TEXT_1 = "Drain depth ({}): "
 LABEL_TEXT_2 = "Drain Simmilarity threshold ({}): "
 
+logger = logging.getLogger("drain_setup")
 
 @dataclass
 class MaskingInstructionSelection(View):
@@ -54,14 +58,20 @@ class MaskingInstructionSelection(View):
         self.instruction_regex = val.pattern
         self.instruction_name = val.mask_with
         self.state_changed.send(self)
-    
+
     def clear(self):
-        self.container.clear()
-        del self.container
+        try:
+            self.container.clear()
+            del self.container
+        except AttributeError:
+            # There is no `container` yet defined
+            pass
 
 
 @dataclass
 class DrainSetup(View):
+    select_files: SelectFiles
+
     drain_depth: int = 10
     drain_sim_th: float = 0.4
     masking_instructions_amount: int = 0
@@ -75,8 +85,8 @@ class DrainSetup(View):
                 "p-4"
             ).border_radius("lg")
             with ui.grid(columns=2):
-                self.dd_label = ui.label(LABEL_TEXT_1.format(self.drain_depth))
-                self.dd_slider = ui.slider(
+                self.drain_depth_label = ui.label(LABEL_TEXT_1.format(self.drain_depth))
+                self.drain_depth_slider = ui.slider(
                     min=2,
                     max=30,
                     step=1,
@@ -87,10 +97,10 @@ class DrainSetup(View):
                     throttle=1.0,
                     leading_events=False,
                 ).bind_value_to(self, "drain_depth")
-                self.dd_slider.tailwind.width("40")
+                self.drain_depth_slider.tailwind.width("40")
 
-                self.dst_label = ui.label(LABEL_TEXT_2.format(self.drain_sim_th))
-                self.dst_slider = ui.slider(
+                self.drain_similarity_label = ui.label(LABEL_TEXT_2.format(self.drain_sim_th))
+                self.drain_similarity_slider = ui.slider(
                     min=0,
                     max=1,
                     step=0.01,
@@ -101,7 +111,7 @@ class DrainSetup(View):
                     throttle=1.0,
                     leading_events=False,
                 ).bind_value_to(self, "drain_sim_th")
-                self.dst_slider.tailwind.width("40")
+                self.drain_similarity_slider.tailwind.width("40")
 
             self.masking_instructions_container = ui.element("div")
             self.masking_n = ui.number(
@@ -112,9 +122,9 @@ class DrainSetup(View):
 
             with ui.row() as el:
                 el.tailwind.margin("mt-2")
+                el.tailwind.margin("mb-4")
 
                 with ui.dialog() as dialog:
-
                     def on_file(event: events.UploadEventArguments):
                         try:
                             buffer = StringIO(event.content.read().decode("utf-8"))
@@ -131,19 +141,23 @@ class DrainSetup(View):
                         auto_upload=True,
                         max_files=1,
                     )
+
                 ui.button("Load", on_click=dialog.open)
-                ui.button("Save", on_click=lambda: self.saveconfig())
+                ui.button("Save", on_click=lambda: self.save_config())
+
+            ui.button("Automatically find masking instructions", on_click=self.automatically_find_masking_instructions)
 
         return outer
 
     def update(self, sender: object = None):
         self.masking_instructions_amount = max(0, self.masking_instructions_amount)
-        self.dd_label.text = LABEL_TEXT_1.format(self.drain_depth)
-        self.dd_slider.value = self.drain_depth
-        self.dst_label.text = LABEL_TEXT_2.format(self.drain_sim_th)
-        self.dst_slider.value = self.drain_sim_th
+        self.drain_depth_label.text = LABEL_TEXT_1.format(self.drain_depth)
+        self.drain_depth_slider.value = self.drain_depth
+        self.drain_similarity_label.text = LABEL_TEXT_2.format(self.drain_sim_th)
+        self.drain_similarity_slider.value = self.drain_sim_th
         self.masking_n.value = self.masking_instructions_amount
 
+        # Update masking instructions view
         with self.masking_instructions_container:
             while self.masking_instructions_amount < len(self.masking_instructions):
                 self.masking_instructions.pop().clear()
@@ -170,7 +184,7 @@ class DrainSetup(View):
     def build_drain(self) -> DrainManager:
         return DrainManager(self.build_drain_config())
 
-    def saveconfig(self):
+    def save_config(self):
         schema = DrainSettingsSchema()
         dump: dict = schema.dump(self.build_drain_config())
         config_path = join(CONFIGS_LOCAL_PATH, f"{uuid4()}.toml")
@@ -201,3 +215,31 @@ class DrainSetup(View):
                 self.masking_instructions.append(instruction)
             self.masking_instructions_amount = len(self.masking_instructions)
         self.state_changed.send(self)
+
+    def automatically_find_masking_instructions(self):
+        if self.select_files.checked is None:
+            ui.notify("No checked file loaded !", type="negative")
+            return
+
+        new_instructions = find_masking_instructions(self.select_files.checked)
+        for new_instruction in new_instructions:
+            valid = True
+            for instruction in self.masking_instructions:
+                if new_instruction.regex == instruction.instruction_regex or new_instruction.name == instruction.instruction_name:
+                    valid = False
+                    break
+ 
+            if not valid:
+                continue
+
+            logger.info(f"Automatically adding {new_instruction} masking instruction")
+
+            with self.masking_instructions_container:
+                new_masking_instruction = MaskingInstructionSelection()
+                new_masking_instruction.show()
+                new_masking_instruction.instruction = MaskingInstruction(
+                    new_instruction.regex, new_instruction.name
+                )
+
+                self.masking_instructions.append(new_masking_instruction)
+                self.masking_instructions_amount += 1

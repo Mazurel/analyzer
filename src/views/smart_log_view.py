@@ -6,7 +6,6 @@ from src.views import View, HeuristicSetup, SelectFiles, DrainSetup, LogView
 
 from nicegui import ui
 from nicegui.tailwind_types.text_color import TextColor
-from blinker import Signal
 
 
 @dataclass
@@ -47,7 +46,6 @@ class SmartLogView(View):
             self.select_files.grand_truth, self.select_files.checked
         )
         self._drain_needs_calculation = False
-        
 
     def _show_logs_not_loaded(self):
         ui.label("Please provide files above to see logs here !").tailwind.text_align(

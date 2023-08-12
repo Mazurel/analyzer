@@ -6,6 +6,21 @@ from nicegui.element import Element
 
 @dataclass
 class View:
+    '''
+    `View` is a base building block of all UIs in this application.
+    This objects are expected to have internal state.
+    When the state changes, the `state_changed` signal should be emitted,
+    which automatically should start `self.update()` method.
+    This method should update the view based on state accordingly.
+
+    `View` objects should use `nicegui.ui` object/namespace to dynamically
+    create and update the DOM.
+
+    NOTE:
+    - Views may be depended on one another. In such case, `state_changed` event
+      may also update parent view.
+    - All views should be dataclasses !
+    '''
     def __post_init__(self):
         self.state_changed = Signal()
         self.state_changed.connect(self.update)

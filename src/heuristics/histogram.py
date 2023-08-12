@@ -1,8 +1,7 @@
-import random
-
 from src.logs.types import LogFile
 from src.heuristics.types import Heuristic
 
+MAGIC_CONSTANT = 0.001
 
 class HistogramHeuristic(Heuristic):
     def load_grand_truth(self, grand_truth: LogFile):
@@ -34,8 +33,8 @@ class HistogramHeuristic(Heuristic):
             for cluster_id in range(cluster_amount)
         }
 
-        max_pred = max(1, max(clusters_difference.values()) + 0.01)
-        min_pred = max(0, min(clusters_difference.values()) - 0.01)
+        max_pred = max(1, max(clusters_difference.values()) + MAGIC_CONSTANT)
+        min_pred = max(0, min(clusters_difference.values()) - MAGIC_CONSTANT)
 
         clusters_difference = {
             i: (v - min_pred) / (max_pred - min_pred)
