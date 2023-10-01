@@ -2,7 +2,14 @@ import uuid
 import logging
 import sys
 
-from src.views import Footer, SelectFiles, HeuristicSetup, SmartLogView, DrainSetup
+from src.views import (
+    Footer,
+    SelectFiles,
+    HeuristicSetup,
+    SmartLogView,
+    DrainSetup,
+    LogsSetup,
+)
 
 from nicegui import ui, app
 

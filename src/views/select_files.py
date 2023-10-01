@@ -11,6 +11,9 @@ from src.widgets import LogFileUpload
 
 @dataclass
 class SelectFiles(View):
+    """
+    This view is responsible for selecting grand truth and checked files.
+    """
     class State(Enum):
         FILES_UPLOADED = auto()
         FILES_NOT_UPLOADED = auto()

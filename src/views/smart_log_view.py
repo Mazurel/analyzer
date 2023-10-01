@@ -10,6 +10,10 @@ from nicegui.tailwind_types.text_color import TextColor
 
 @dataclass
 class SmartLogView(View):
+    """
+    This view is responsible for showing log files with their heurstics.
+    It also allows interacting with log lines.
+    """
     drain_setup: DrainSetup
     heuristic_setup: HeuristicSetup
     select_files: SelectFiles
