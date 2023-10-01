@@ -1,49 +1,9 @@
 from typing import Optional, TextIO, NamedTuple
-import re
 from dataclasses import dataclass
-import time
 
-from dateutil import parser as date_parser
 
-def extract_timestamp(line: str) -> Optional[float]:
-    if line[0] == "[":
-        end_index: int = line.find("]", 1)
-        if end_index != -1:
-            text = line[1:end_index]
-            try:
-                date = date_parser.parse(text)
-                return date.timestamp()
-            except date_parser.ParserError:
-                pass
-            try:
-                return float(text)
-            except ValueError:
-                pass
+from src.logs.timestamp import extract_timestamp
 
-    substr = line
-    while True:
-        try:
-            date = date_parser.parse(substr)
-            return date.timestamp()
-        except date_parser.ParserError:
-            new_end_index = substr.find(" ")
-            if new_end_index == -1:
-                break
-
-            substr = substr[:new_end_index].strip()
-
-    substr = line
-    while True:
-        try:
-            return float(substr)
-        except ValueError:
-            new_end_index = substr.find(" ")
-            if new_end_index == -1:
-                break
-
-            substr = substr[:new_end_index].strip()
-
-    return None
 
 @dataclass
 class Template:
@@ -57,7 +17,7 @@ class LogLine:
         self._line_content = line
         self._heuristics: dict[str, float] = {}
         self._template: Optional[Template] = None
-        self._timestamp: Optional[int] = extract_timestamp(line)
+        self._timestamp: Optional[float] = extract_timestamp(line)
 
     @property
     def line(self) -> str:
@@ -75,7 +35,7 @@ class LogLine:
         self._template = template
 
     @property
-    def timestamp(self) -> int:
+    def timestamp(self) -> float:
         if self._timestamp is None:
             raise ValueError("Timestamp was not set")
         return self._timestamp
