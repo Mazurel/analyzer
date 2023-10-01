@@ -12,6 +12,7 @@ from nicegui.element import Element
 from drain3.template_miner_config import TemplateMinerConfig
 
 from src.views import View
+from src.widgets import settings_frame
 from src.logs.drain import DrainManager, MaskingInstruction, DrainSettingsSchema
 from src.consts import CONFIGS_LOCAL_PATH
 from src.views.select_files import SelectFiles
@@ -70,6 +71,10 @@ class MaskingInstructionSelection(View):
 
 @dataclass
 class DrainSetup(View):
+    """
+    This view is responsible for configuring Drain.
+    It supports saving/loading drain configs and tweaking individual options.
+    """
     select_files: SelectFiles
 
     drain_depth: int = 10
@@ -80,10 +85,7 @@ class DrainSetup(View):
     )
 
     def show(self):
-        with ui.element("div") as outer:
-            outer.tailwind.border_color("indigo-300").border_width("2").padding(
-                "p-4"
-            ).border_radius("lg")
+        with settings_frame() as outer:
             with ui.grid(columns=2):
                 self.drain_depth_label = ui.label(LABEL_TEXT_1.format(self.drain_depth))
                 self.drain_depth_slider = ui.slider(

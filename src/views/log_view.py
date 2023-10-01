@@ -10,6 +10,10 @@ from nicegui import ui
 
 @dataclass
 class LogView(View):
+    """
+    This view shows log file.
+    It also alows focusing lines by ID.
+    """
     log_file: LogFile
     lines: list[Element] = field(default_factory= lambda: [])
 

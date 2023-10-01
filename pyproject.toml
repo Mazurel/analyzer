@@ -13,7 +13,8 @@ dependencies = [
     "drain3",
     "marshmallow",
     "blinker",
-    "toml"
+    "toml",
+    "python-dateutil"
 ]
 
 

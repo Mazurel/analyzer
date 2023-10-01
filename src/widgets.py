@@ -4,6 +4,7 @@ from typing import Callable
 from src.logs.types import LogFile
 
 from nicegui import ui, events
+from nicegui.element import Element
 
 
 class LogFileUpload(ui.upload):
@@ -26,3 +27,12 @@ class LogFileUpload(ui.upload):
         )
 
         self._on_upload = on_upload
+
+
+def settings_frame() -> Element:
+    el = ui.element("div")
+    el.tailwind.border_color("indigo-300")
+    el.tailwind.border_width("2")
+    el.tailwind.padding("p-4")
+    el.tailwind.border_radius("lg")
+    return el
