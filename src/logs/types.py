@@ -40,6 +40,9 @@ class LogLine:
             raise ValueError("Timestamp was not set")
         return self._timestamp
 
+    def has_timestamp(self) -> bool:
+        return self._timestamp is not None
+
     def add_heuristic(self, name: str, value: float):
         """
         Add heurtisitc value named `name` to the log line.

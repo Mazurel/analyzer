@@ -37,7 +37,7 @@ def test_logline_heuristic():
         line.template
 
 def test_timestamp():
-    line_with_timestamp = LogLine("21 - test")
+    line_with_timestamp = LogLine("2015-10-17 15:37:56,547 - test")
     line_without_timestamp = LogLine("test")
 
     assert line_with_timestamp.timestamp, "Timestamp should be set"
