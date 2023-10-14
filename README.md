@@ -12,3 +12,12 @@ pip install -e .
 pip install -e ".[dev]"
 python main.py
 ```
+
+## Running tests
+
+This project uses `pytest` for testing.
+To run full test suite, run:
+
+```shell
+python test.py
+```
