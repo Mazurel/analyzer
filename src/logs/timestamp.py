@@ -1,7 +1,9 @@
 from typing import Optional
+from logging import getLogger
 
 from dateutil import parser as date_parser
 
+logger = getLogger("timestamps")
 
 def _try_interpret_str(s: str) -> Optional[float]:
     try:
@@ -18,7 +20,7 @@ def _try_interpret_str(s: str) -> Optional[float]:
     return None
 
 
-def extract_timestamp(line: str) -> Optional[float]:
+def extract_timestamp(line: str) -> Optional[tuple[str, float]]:
     """
     Based on line of text (line of log), try to extract timestamp from the message.
     This method tries a few common templates, based on log types of:
@@ -38,21 +40,23 @@ def extract_timestamp(line: str) -> Optional[float]:
     if line[0] == "[":
         end_index: int = line.find("]", 1)
         if end_index != -1:
-            text = line[1:end_index]
-            if (t := _try_interpret_str(text)) is not None:
-                return t
+            potential_timestamp = line[1:end_index]
+            if (timestamp := _try_interpret_str(potential_timestamp)) is not None:
+                logger.debug(f"Found at: {potential_timestamp}")
+                return line[end_index+1:].lstrip(), timestamp
 
     # Check for date pattern with date/timestamp in front
     substr = line
     while True:
-        if (date := _try_interpret_str(substr)) is not None:
-            return date
+        new_end_index = substr.rfind(" ")
+        substr = substr[:new_end_index].strip()
 
-        new_end_index = substr.find(" ")
         if new_end_index == -1:
             break
 
-        substr = substr[:new_end_index].strip()
+        if (timestamp := _try_interpret_str(substr)) is not None:
+            logger.debug(f"Found at: {substr}")
+            return line[new_end_index:].lstrip(), timestamp
 
     return None
 
