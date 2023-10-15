@@ -45,7 +45,7 @@ class DrainManager:
 
     def learn(self, file: LogFile):
         for line in file.lines:
-            self.miner.add_log_message(line.line)
+            self.miner.add_log_message(line.line_without_timestamp)
 
     def build_templates(self):
         self.templates = {
@@ -56,5 +56,5 @@ class DrainManager:
     def annotate(self, file: LogFile):
         self.build_templates()
         for line in file.lines:
-            result = self.miner.match(line.line)
+            result = self.miner.match(line.line_without_timestamp)
             line.template = self.templates[result.cluster_id]

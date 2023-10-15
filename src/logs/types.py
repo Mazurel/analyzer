@@ -1,9 +1,7 @@
 from typing import Optional, TextIO, NamedTuple
 from dataclasses import dataclass
 
-
 from src.logs.timestamp import extract_timestamp
-
 
 @dataclass
 class Template:
@@ -15,13 +13,22 @@ class Template:
 class LogLine:
     def __init__(self, line: str) -> None:
         self._line_content = line
+
+        self._line_content_no_timestamp = None
+        self._timestamp = None
+        if timestamp_extraction_res := extract_timestamp(line):
+            self._line_content_no_timestamp, self._timestamp = timestamp_extraction_res
+
         self._heuristics: dict[str, float] = {}
         self._template: Optional[Template] = None
-        self._timestamp: Optional[float] = extract_timestamp(line)
 
     @property
     def line(self) -> str:
         return self._line_content
+
+    @property
+    def line_without_timestamp(self) -> str:
+        return self._line_content_no_timestamp if self._line_content_no_timestamp is not None else self._line_content
 
     @property
     def template(self) -> Template:
