@@ -14,7 +14,8 @@ dependencies = [
     "marshmallow",
     "blinker",
     "toml",
-    "python-dateutil"
+    "python-dateutil",
+    "logparser3"
 ]
 
 
