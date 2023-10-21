@@ -1,4 +1,5 @@
 from io import StringIO
+from logs.timestamp import TimestampExtractor
 
 from src.logs.types import LogFile, LogLine
 
@@ -24,8 +25,7 @@ def test_logline_heuristic():
     assert line.line == "test", "String is saved properly"
 
     line.add_heuristic("Sample", 0.5)
-    assert line.get_heuristic("Sample") == 0.5, "It is possible to add heuristic"
-
+    assert line.get_heuristic("Sample") == 0.5, "It is possible to add heuristic" 
     line.clear_heuristics()
 
     # There should be no heurisric now
@@ -39,6 +39,8 @@ def test_logline_heuristic():
 def test_timestamp():
     line_with_timestamp = LogLine("21 - test")
     line_without_timestamp = LogLine("test")
+
+    line_with_timestamp.extract_timestamp(TimestampExtractor())
 
     assert line_with_timestamp.timestamp, "Timestamp should be set"
 

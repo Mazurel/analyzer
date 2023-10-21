@@ -1,7 +1,7 @@
-from typing import Optional, TextIO, NamedTuple
+from typing import Optional, TextIO, NamedTuple, TYPE_CHECKING
 from dataclasses import dataclass
 
-from src.logs.timestamp import extract_timestamp
+from src.logs.timestamp import TimestampExtractor
 
 @dataclass
 class Template:
@@ -16,9 +16,6 @@ class LogLine:
 
         self._line_content_no_timestamp = None
         self._timestamp = None
-        if timestamp_extraction_res := extract_timestamp(line):
-            self._line_content_no_timestamp, self._timestamp = timestamp_extraction_res
-
         self._heuristics: dict[str, float] = {}
         self._template: Optional[Template] = None
 
@@ -40,6 +37,10 @@ class LogLine:
     def template(self, template: Template):
         assert template is not None
         self._template = template
+
+    def extract_timestamp(self, extractor: TimestampExtractor):
+        if timestamp_extraction_res := extractor.extract(self.line):
+            self._line_content_no_timestamp, self._timestamp = timestamp_extraction_res
 
     @property
     def timestamp(self) -> float:
@@ -76,7 +77,10 @@ class LogLine:
 
 class LogFile:
     def __init__(self, file: TextIO) -> None:
+        timestamp_extractor = TimestampExtractor()
         self._lines = [LogLine(line) for line in file.readlines()]
+        for line in self._lines:
+            line.extract_timestamp(timestamp_extractor)
 
     @property
     def lines(self) -> list[LogLine]:

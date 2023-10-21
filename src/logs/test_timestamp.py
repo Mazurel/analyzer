@@ -1,14 +1,24 @@
-from src.logs.types import extract_timestamp
+from src.logs.timestamp import TimestampExtractor
+
+def test_timestamp_subdivisions():
+    e = TimestampExtractor()
+    assert e._subdivide_str("test a b c") == [
+        "test a b c",
+        "test a b",
+        "test a",
+        "test",
+    ]
 
 def test_extract_timestamp():
-    assert extract_timestamp("16 test 123 abc") is not None
+    e = TimestampExtractor()
+    assert e.extract("16 test 123 abc") is not None
     log_message = "Random 23.12.2023 log message"
 
-    assert extract_timestamp("Test1") is None
+    assert e.extract("Test1") is None
 
     def check_timestamp(stamp: str):
         line = stamp + " " + log_message
-        result = extract_timestamp(line)
+        result = e.extract(line)
         print(f"{line} -> {result}")
         assert result is not None, f"Timestamp '{stamp}' was not properly extracted"
         assert result[0] == log_message, "Timestamp should be extracted at proper place"
