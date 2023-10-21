@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
+import math
 
 from src.heuristics import manager as heuristics
 from src.views import View, HeuristicSetup, SelectFiles, DrainSetup, LogView
@@ -17,8 +18,7 @@ class SmartLogView(View):
     drain_setup: DrainSetup
     heuristic_setup: HeuristicSetup
     select_files: SelectFiles
-
-    
+ 
     _drain_needs_calculation: bool = False
 
     def update_log_visualization(self):
@@ -83,7 +83,7 @@ class SmartLogView(View):
             if val < self.heuristic_setup.heuristic_cap:
                 continue
 
-            color = COLORS[int(len(COLORS) * val)]
+            color = COLORS[math.floor(len(COLORS) * val)]
 
             lbl = ui.label(f"{i + 1}: {line.line}")
             lbl.on("click", partial(preview_log, i))
