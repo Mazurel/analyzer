@@ -5,6 +5,7 @@ import sys
 from src.views import (
     Footer,
     SelectFiles,
+    SelectParser,
     HeuristicSetup,
     SmartLogView,
     DrainSetup,
@@ -24,6 +25,7 @@ logging.basicConfig(
 class State:
     def __init__(self) -> None:
         self.file_select = SelectFiles()
+        self.parser_select = SelectParser()
         self.drain_setup = DrainSetup(select_files=self.file_select)
         self.heuristic_setup = HeuristicSetup()
         self.log_view = SmartLogView(
@@ -62,6 +64,7 @@ def start(fastapi_app: FastAPI):
         ui.markdown("Upload Grand truth and checked file to see analysis result")
 
         await state.file_select.show()
+        await state.parser_select.show()
         await state.drain_setup.show()
         await state.heuristic_setup.show()
         await state.log_view.show()
