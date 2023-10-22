@@ -6,6 +6,7 @@ from .log_view import LogView
 from .logs_setup import LogsSetup
 from .smart_log_view import SmartLogView
 from .footer import Footer
+from .select_parser import SelectParser
 
 __all__ = [
     "View",
@@ -15,5 +16,6 @@ __all__ = [
     "SmartLogView",
     "DrainSetup",
     "LogView",
-    "LogsSetup"
+    "LogsSetup",
+    "SelectParser"
 ]

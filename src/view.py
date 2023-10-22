@@ -5,6 +5,7 @@ import sys
 from src.views import (
     Footer,
     SelectFiles,
+    SelectParser,
     HeuristicSetup,
     SmartLogView,
     DrainSetup,
@@ -24,6 +25,7 @@ logging.basicConfig(
 class State:
     def __init__(self) -> None:
         self.file_select = SelectFiles()
+        self.parser_select = SelectParser()
         self.drain_setup = DrainSetup(select_files=self.file_select)
         self.heuristic_setup = HeuristicSetup()
         self.log_view = SmartLogView(
@@ -62,6 +64,7 @@ def index():
     ui.markdown("Upload Grand truth and checked file to see analysis result")
 
     state.file_select.show()
+    state.parser_select.show()
     state.drain_setup.show()
     state.heuristic_setup.show()
     state.log_view.show()
