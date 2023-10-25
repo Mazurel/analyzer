@@ -23,6 +23,7 @@ LABEL_TEXT_2 = "Drain Simmilarity threshold ({}): "
 
 logger = logging.getLogger("drain_setup")
 
+
 @dataclass
 class MaskingInstructionSelection(View):
     ready: bool = False
@@ -30,7 +31,7 @@ class MaskingInstructionSelection(View):
     instruction_regex: str = ""
 
     def show(self) -> Element:
-        with ui.grid(1, 2) as el:
+        with ui.grid(rows=1, columns=2) as el:
             el.tailwind.width("full")
             self.l1 = ui.input(
                 label="Masking instruction name",
@@ -75,6 +76,7 @@ class DrainSetup(View):
     This view is responsible for configuring Drain.
     It supports saving/loading drain configs and tweaking individual options.
     """
+
     select_files: SelectFiles
 
     drain_depth: int = 10
@@ -88,31 +90,41 @@ class DrainSetup(View):
         with settings_frame() as outer:
             with ui.grid(columns=2):
                 self.drain_depth_label = ui.label(LABEL_TEXT_1.format(self.drain_depth))
-                self.drain_depth_slider = ui.slider(
-                    min=2,
-                    max=30,
-                    step=1,
-                    value=self.drain_depth,
-                ).on(
-                    "update:model-value",
-                    lambda: self.state_changed.send(self),
-                    throttle=1.0,
-                    leading_events=False,
-                ).bind_value_to(self, "drain_depth")
+                self.drain_depth_slider = (
+                    ui.slider(
+                        min=2,
+                        max=30,
+                        step=1,
+                        value=self.drain_depth,
+                    )
+                    .on(
+                        "update:model-value",
+                        lambda: self.state_changed.send(self),
+                        throttle=1.0,
+                        leading_events=False,
+                    )
+                    .bind_value_to(self, "drain_depth")
+                )
                 self.drain_depth_slider.tailwind.width("40")
 
-                self.drain_similarity_label = ui.label(LABEL_TEXT_2.format(self.drain_sim_th))
-                self.drain_similarity_slider = ui.slider(
-                    min=0,
-                    max=1,
-                    step=0.01,
-                    value=self.drain_sim_th,
-                ).on(
-                    "update:model-value",
-                    lambda: self.state_changed.send(self),
-                    throttle=1.0,
-                    leading_events=False,
-                ).bind_value_to(self, "drain_sim_th")
+                self.drain_similarity_label = ui.label(
+                    LABEL_TEXT_2.format(self.drain_sim_th)
+                )
+                self.drain_similarity_slider = (
+                    ui.slider(
+                        min=0,
+                        max=1,
+                        step=0.01,
+                        value=self.drain_sim_th,
+                    )
+                    .on(
+                        "update:model-value",
+                        lambda: self.state_changed.send(self),
+                        throttle=1.0,
+                        leading_events=False,
+                    )
+                    .bind_value_to(self, "drain_sim_th")
+                )
                 self.drain_similarity_slider.tailwind.width("40")
 
             self.masking_instructions_container = ui.element("div")
@@ -127,6 +139,7 @@ class DrainSetup(View):
                 el.tailwind.margin("mb-4")
 
                 with ui.dialog() as dialog:
+
                     def on_file(event: events.UploadEventArguments):
                         try:
                             buffer = StringIO(event.content.read().decode("utf-8"))
@@ -147,7 +160,10 @@ class DrainSetup(View):
                 ui.button("Load", on_click=dialog.open)
                 ui.button("Save", on_click=lambda: self.save_config())
 
-            ui.button("Automatically find masking instructions", on_click=self.automatically_find_masking_instructions)
+            ui.button(
+                "Automatically find masking instructions",
+                on_click=self.automatically_find_masking_instructions,
+            )
 
         return outer
 
@@ -227,10 +243,13 @@ class DrainSetup(View):
         for new_instruction in new_instructions:
             valid = True
             for instruction in self.masking_instructions:
-                if new_instruction.regex == instruction.instruction_regex or new_instruction.name == instruction.instruction_name:
+                if (
+                    new_instruction.regex == instruction.instruction_regex
+                    or new_instruction.name == instruction.instruction_name
+                ):
                     valid = False
                     break
- 
+
             if not valid:
                 continue
 

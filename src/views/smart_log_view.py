@@ -15,10 +15,11 @@ class SmartLogView(View):
     This view is responsible for showing log files with their heurstics.
     It also allows interacting with log lines.
     """
+
     drain_setup: DrainSetup
     heuristic_setup: HeuristicSetup
     select_files: SelectFiles
- 
+
     _drain_needs_calculation: bool = False
 
     def update_log_visualization(self):
@@ -29,12 +30,12 @@ class SmartLogView(View):
         if self.select_files.state == SelectFiles.State.FILES_NOT_UPLOADED:
             self._show_logs_not_loaded()
             return
-        
+
         if self._drain_needs_calculation:
             self._recalculate_drain()
 
         self._show_logs()
-    
+
     def _recalculate_drain(self):
         assert (
             self.select_files.grand_truth is not None
@@ -69,7 +70,9 @@ class SmartLogView(View):
         log_view = LogView(self.select_files.checked)
         with ui.dialog() as log_view_dialog:
             log_view_dialog.props(add="full-width")
-            log_view.show().tailwind.background_color("white").padding("p-2.5").width("max")
+            log_view.show().tailwind.background_color("white").padding("p-2.5").width(
+                "max"
+            )
 
         def preview_log(line_id: int):
             log_view_dialog.open()
@@ -83,8 +86,7 @@ class SmartLogView(View):
             if val < self.heuristic_setup.heuristic_cap:
                 continue
 
-            color = COLORS[math.floor(len(COLORS) * val)]
-
+            color = COLORS[math.floor(len(COLORS) * val - 1e-6)]
             lbl = ui.label(f"{i + 1}: {line.line}")
             lbl.on("click", partial(preview_log, i))
 

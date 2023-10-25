@@ -11,11 +11,14 @@ class LogsSetup(View):
     """
     This view is responsible for configuring log files.
     """
+
     timestamp_regex: str = ""
 
     def show(self):
         with settings_frame() as el:
-            ui.input("Timestamp Regexp", on_change=self.update).bind_value_to(self, "timestamp_regex")
+            ui.input("Timestamp Regexp", on_change=self.update).bind_value_to(
+                self, "timestamp_regex"
+            )
         return el
 
     def update(self, sender: object = None):

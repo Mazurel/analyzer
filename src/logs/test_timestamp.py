@@ -1,5 +1,6 @@
 from src.logs.timestamp import TimestampExtractor
 
+
 def test_timestamp_subdivisions():
     e = TimestampExtractor()
     assert e._subdivide_str("test a b c") == [
@@ -8,6 +9,7 @@ def test_timestamp_subdivisions():
         "test a",
         "test",
     ]
+
 
 def test_extract_timestamp():
     e = TimestampExtractor()
@@ -32,4 +34,3 @@ def test_extract_timestamp():
     check_timestamp(apache_style_timestamp)
     check_timestamp(android_style_timestamp)
     check_timestamp(linux_style_timestamp)
-

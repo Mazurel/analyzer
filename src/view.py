@@ -17,7 +17,7 @@ logging.basicConfig(
     handlers=[
         logging.StreamHandler(sys.stdout),
     ],
-    level=logging.DEBUG,
+    level=logging.INFO,
 )
 
 

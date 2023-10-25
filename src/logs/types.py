@@ -1,13 +1,23 @@
-from typing import Optional, TextIO, NamedTuple, TYPE_CHECKING
+from typing import Generator, Optional, TextIO, NamedTuple
 from dataclasses import dataclass
+from uuid import uuid4, UUID
 
 from src.logs.timestamp import TimestampExtractor
+
 
 @dataclass
 class Template:
     id: int
     pattern: str
     name: Optional[str] = None
+
+
+class NoTemplateException(ValueError):
+    pass
+
+
+class NoTimestampException(ValueError):
+    pass
 
 
 class LogLine:
@@ -18,6 +28,7 @@ class LogLine:
         self._timestamp = None
         self._heuristics: dict[str, float] = {}
         self._template: Optional[Template] = None
+        self._id: Optional[UUID] = None
 
     @property
     def line(self) -> str:
@@ -25,12 +36,16 @@ class LogLine:
 
     @property
     def line_without_timestamp(self) -> str:
-        return self._line_content_no_timestamp if self._line_content_no_timestamp is not None else self._line_content
+        return (
+            self._line_content_no_timestamp
+            if self._line_content_no_timestamp is not None
+            else self._line_content
+        )
 
     @property
     def template(self) -> Template:
         if self._template is None:
-            raise ValueError("Template was not set")
+            raise NoTemplateException("Template was not set")
         return self._template
 
     @template.setter
@@ -45,7 +60,7 @@ class LogLine:
     @property
     def timestamp(self) -> float:
         if self._timestamp is None:
-            raise ValueError("Timestamp was not set")
+            raise NoTimestampException("Timestamp was not set")
         return self._timestamp
 
     def add_heuristic(self, name: str, value: float):
@@ -58,6 +73,13 @@ class LogLine:
         """
         assert 0.0 <= value <= 1.0, "Heuristic `value` must be in range"
         self._heuristics[name] = value
+
+    def get_unique_id(self) -> UUID:
+        if self._id is not None:
+            return self._id
+
+        self._id = uuid4()
+        return self._id
 
     def list_heuristics(self) -> set[str]:
         return set(self._heuristics.keys())
@@ -89,6 +111,15 @@ class LogFile:
     def clear_heuristics(self):
         for line in self.lines:
             line.clear_heuristics()
+
+    def get_all_template_ids(self) -> Generator[int, None, None]:
+        covered_id = set()
+        for line in self.lines:
+            if line.template.id in covered_id:
+                continue
+
+            yield line.template.id
+            covered_id.add(line.template.id)
 
 
 class MaskingInstruction(NamedTuple):

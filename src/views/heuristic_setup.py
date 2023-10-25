@@ -12,6 +12,7 @@ class HeuristicSetup(View):
     This view is responsible for configuring heuristics.
     Currently it only contains heuristic cap slider.
     """
+
     heuristic_cap: float = 0.5
     label: Optional[Label] = None
 

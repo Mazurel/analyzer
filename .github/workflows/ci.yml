@@ -21,7 +21,7 @@ jobs:
       run: poetry install
     - name: Analysing the code with Black
       run: |
-        poetry run black --check src/**.py
+        poetry run black --check src/**/*.py
     - name: Run unit tests
       run: |
         poetry run python test.py

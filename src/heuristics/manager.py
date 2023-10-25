@@ -2,12 +2,12 @@ import logging
 
 from src.logs.types import LogFile
 from src.heuristics.types import Heuristic
-from src.heuristics.histogram import HistogramHeuristic
 from src.heuristics.simple import SimpleHeuristic
+from src.heuristics.histogram_time import TimeHeuristic
 
 HEURISTICS: list[tuple[str, Heuristic]] = [
     ("Simple", SimpleHeuristic()),
-    ("Histogram", HistogramHeuristic())
+    ("Time Histogram", TimeHeuristic()),
 ]
 
 logger = logging.getLogger("heuristics_manager")
