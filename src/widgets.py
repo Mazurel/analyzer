@@ -52,7 +52,7 @@ class LogFileUpload(ui.upload):
             parsing_file_lock.release()
 
         if log_file is not None:
-            await self._on_upload(log_file)
+            await self._on_upload(log_file, buffer)
 
     def __init__(self, label: str, on_upload: Callable[[LogFile], Awaitable[None]]):
         with ui.column():

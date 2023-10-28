@@ -2,6 +2,7 @@ from src.logs.types import MaskingInstruction
 
 CONFIGS_ENDPOINT = "configs/"
 CONFIGS_LOCAL_PATH = "configs/"
+LOG_WORKDIR = "workdir/"
 
 COMMON_MASKING_INSTRUCTIONS: list[MaskingInstruction] = [
     MaskingInstruction("IPv4", "[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}"),
