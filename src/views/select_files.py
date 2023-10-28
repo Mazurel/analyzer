@@ -25,6 +25,8 @@ class SelectFiles(View):
     state: State = State.FILES_NOT_UPLOADED
     grand_truth: Optional[LogFile] = None
     checked: Optional[LogFile] = None
+    grand_truth_name: Optional[str] = None
+    checked_name: Optional[str] = None
 
     def _emit_state_changed(self):
         self.state = (
@@ -38,15 +40,18 @@ class SelectFiles(View):
         self.grand_truth = file
         # TODO 
         # currently temporary save of log file in order to simple use of another parsers
-        with open(os.path.join(LOG_WORKDIR, "grand_truth.log"), "w") as log_file:
+        self.grand_truth_name = "grand_truth.log"
+        with open(os.path.join(LOG_WORKDIR, self.grand_truth_name), "w") as log_file:
             log_file.write(buffer.getvalue())
+        
         self._emit_state_changed()
 
     def _handle_checked(self, file: LogFile, buffer: StringIO):
         self.checked = file
         # TODO 
         # currently temporary save of log file in order to simple use of another parsers
-        with open(os.path.join(LOG_WORKDIR, "checked.log"), "w") as log_file:
+        self.checked_name = "checked.log"
+        with open(os.path.join(LOG_WORKDIR, self.checked_name), "w") as log_file:
             log_file.write(buffer.getvalue())
         self._emit_state_changed()
 
