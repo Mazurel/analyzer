@@ -1,3 +1,6 @@
+import os
+from io import StringIO
+
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Optional
@@ -8,6 +11,7 @@ from src.logs.types import LogFile
 from src.views import View
 from src.widgets import LogFileUpload
 
+from src.consts import LOG_WORKDIR
 
 @dataclass
 class SelectFiles(View):
@@ -30,12 +34,20 @@ class SelectFiles(View):
         )
         self.state_changed.send(self)
 
-    def _handle_grand_truth(self, file: LogFile):
+    def _handle_grand_truth(self, file: LogFile, buffer: StringIO):
         self.grand_truth = file
+        # TODO 
+        # currently temporary save of log file in order to simple use of another parsers
+        with open(os.path.join(LOG_WORKDIR, "grand_truth.log"), "w") as log_file:
+            log_file.write(buffer.getvalue())
         self._emit_state_changed()
 
-    def _handle_checked(self, file: LogFile):
+    def _handle_checked(self, file: LogFile, buffer: StringIO):
         self.checked = file
+        # TODO 
+        # currently temporary save of log file in order to simple use of another parsers
+        with open(os.path.join(LOG_WORKDIR, "checked.log"), "w") as log_file:
+            log_file.write(buffer.getvalue())
         self._emit_state_changed()
 
     def show(self):

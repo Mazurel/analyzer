@@ -16,7 +16,7 @@ class LogFileUpload(ui.upload):
             ui.notify(f"Uploading log file failed with: {str(ex)}")
             return
 
-        self._on_upload(log_file)
+        self._on_upload(log_file, buffer)
 
     def __init__(self, label: str, on_upload: Callable[[LogFile], None]):
         super().__init__(
