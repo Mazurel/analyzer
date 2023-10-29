@@ -5,13 +5,15 @@ from src.logs.types import LogFile, LogLine
 
 import pytest
 
+
 def test_logfile():
     sample_file = StringIO(
-    '''
+        """
     Line1
     Line2
     Line3
-    '''.strip())
+    """.strip()
+    )
 
     log_file = LogFile(sample_file)
     assert len(log_file.lines) == 3, "There are 3 lines"
@@ -19,13 +21,14 @@ def test_logfile():
     first_line = log_file.lines[0]
     assert first_line.line == "Line1\n"
 
+
 def test_logline_heuristic():
     line = LogLine("test")
 
     assert line.line == "test", "String is saved properly"
 
     line.add_heuristic("Sample", 0.5)
-    assert line.get_heuristic("Sample") == 0.5, "It is possible to add heuristic" 
+    assert line.get_heuristic("Sample") == 0.5, "It is possible to add heuristic"
     line.clear_heuristics()
 
     # There should be no heurisric now
@@ -35,6 +38,7 @@ def test_logline_heuristic():
     # There should be no template initially
     with pytest.raises(ValueError):
         line.template
+
 
 def test_timestamp():
     line_with_timestamp = LogLine("21 - test")
@@ -46,4 +50,3 @@ def test_timestamp():
 
     with pytest.raises(ValueError):
         line_without_timestamp.timestamp
-

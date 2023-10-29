@@ -14,8 +14,9 @@ class LogView(View):
     This view shows log file.
     It also alows focusing lines by ID.
     """
+
     log_file: LogFile
-    lines: list[Element] = field(default_factory= lambda: [])
+    lines: list[Element] = field(default_factory=lambda: [])
 
     def show(self) -> Element:
         with ui.element("div") as e:
@@ -28,9 +29,7 @@ class LogView(View):
 
     def focus_line(self, id: int):
         for line in self.lines:
-            line.classes(
-                remove="font-bold"
-            )
+            line.classes(remove="font-bold")
 
         self.lines[id].run_method(
             "scrollIntoView", {"behavior": "smooth", "block": "center"}

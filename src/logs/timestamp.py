@@ -19,10 +19,7 @@ class TimestampExtractor:
         ```
         """
         words = s.split()
-        subdivisions = [
-            " ".join(words[:i])
-            for i in range(len(words), 0, -1)
-        ]
+        subdivisions = [" ".join(words[:i]) for i in range(len(words), 0, -1)]
         return subdivisions
 
     def _try_interpret_str(self, s: str) -> Optional[float]:
@@ -38,7 +35,6 @@ class TimestampExtractor:
             pass
 
         return None
-
 
     def extract(self, line: str) -> Optional[tuple[str, float]]:
         """
@@ -61,9 +57,11 @@ class TimestampExtractor:
             end_index: int = line.find("]", 1)
             if end_index != -1:
                 potential_timestamp = line[1:end_index]
-                if (timestamp := self._try_interpret_str(potential_timestamp)) is not None:
+                if (
+                    timestamp := self._try_interpret_str(potential_timestamp)
+                ) is not None:
                     logger.debug(f"Found at: {potential_timestamp}")
-                    return line[end_index+1:].lstrip(), timestamp
+                    return line[end_index + 1 :].lstrip(), timestamp
 
         # Check for date pattern with date/timestamp in front
         subdivisions = self._subdivide_str(line)
@@ -76,9 +74,8 @@ class TimestampExtractor:
             if timestamp is None:
                 continue
 
-            line_without_timestamp = line[len(subdivision):].lstrip()
+            line_without_timestamp = line[len(subdivision) :].lstrip()
             return line_without_timestamp, timestamp
-
 
         for i, subdivision in enumerate(subdivisions):
             timestamp = self._try_interpret_str(subdivision)
@@ -88,8 +85,7 @@ class TimestampExtractor:
             self.cached_positions.append(i)
             self.cached_positions.sort(reverse=True)
 
-            line_without_timestamp = line[len(subdivision):].lstrip()
+            line_without_timestamp = line[len(subdivision) :].lstrip()
             return line_without_timestamp, timestamp
 
         return None
-

@@ -15,5 +15,5 @@ __all__ = [
     "SmartLogView",
     "DrainSetup",
     "LogView",
-    "LogsSetup"
+    "LogsSetup",
 ]
