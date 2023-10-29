@@ -6,11 +6,13 @@ This is a repo for our reasearch project 5@KAMS.
 
 ## Local installation
 
+This project is using `poetry` build system.
+You need to install poetry first on your system.
+To do that, please see installation guide: https://python-poetry.org/docs/
+
 ```shell
-python -m venv venv
-pip install -e .
-pip install -e ".[dev]"
-python main.py
+poetry install
+poetry run python main.py
 ```
 
 ## Running tests
@@ -19,5 +21,5 @@ This project uses `pytest` for testing.
 To run full test suite, run:
 
 ```shell
-python test.py
+poetry run python test.py
 ```

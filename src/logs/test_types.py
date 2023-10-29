@@ -1,6 +1,6 @@
 from io import StringIO
-from logs.timestamp import TimestampExtractor
 
+from src.logs.timestamp import TimestampExtractor
 from src.logs.types import LogFile, LogLine
 
 import pytest
