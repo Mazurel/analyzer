@@ -2,7 +2,7 @@ from .view import View
 from .select_files import SelectFiles
 from .heuristic_setup import HeuristicSetup
 from .drain_setup import DrainSetup
-from .log_view import LogView
+from .log_view import LogView, MultiLogView
 from .logs_setup import LogsSetup
 from .smart_log_view import SmartLogView
 from .footer import Footer
@@ -16,4 +16,5 @@ __all__ = [
     "DrainSetup",
     "LogView",
     "LogsSetup",
+    "MultiLogView",
 ]

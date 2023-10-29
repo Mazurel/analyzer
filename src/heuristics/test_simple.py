@@ -8,7 +8,9 @@ def test_simple_heuristic():
     mocked_grand_truth = LogFile(
         StringIO(
             """
-    Warning test is a test
+    1 : Warning test is a test
+    2 : Thank you, next
+    3 : Thank you, next
     """.strip()
         )
     )
@@ -16,8 +18,9 @@ def test_simple_heuristic():
     mocked_checked = LogFile(
         StringIO(
             """
-    Warning test is not a test
-    Error - What ?
+    1 : Warning test is not a test
+    2 : Error - What ?
+    3 : Thank you, next
     """.strip()
         )
     )
@@ -26,6 +29,6 @@ def test_simple_heuristic():
     h.load_grand_truth(mocked_grand_truth)
     h.calculate_heuristic("test", mocked_checked)
 
-    assert len(mocked_checked.lines) == 2
+    assert len(mocked_checked.lines) == 3
     assert not mocked_checked.lines[0].has_heuristic("test")
     assert mocked_checked.lines[1].has_heuristic("test")

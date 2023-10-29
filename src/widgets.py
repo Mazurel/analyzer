@@ -1,33 +1,70 @@
 from io import StringIO
-from typing import Callable
+from typing import Callable, Awaitable
 
-from src.logs.types import LogFile
+from src.logs.types import LogFile, LogLine
 
-from nicegui import ui, events
+from nicegui import ui, events, run
 from nicegui.element import Element
 
 
 class LogFileUpload(ui.upload):
-    def _parse_file(self, event: events.UploadEventArguments):
+    def _set_status_progress(self, text: str):
+        self._status_element.clear()
+        with self._status_element:
+            ui.spinner(size="lg")
+            ui.label(text)
+
+    def _set_status_done(self, text: str):
+        self._status_element.clear()
+        with self._status_element:
+            ui.icon("done", size="lg")
+            ui.label(text)
+
+    def _set_status_fail(self, text: str):
+        self._status_element.clear()
+        with self._status_element:
+            ui.icon("cancel", size="lg")
+            ui.label(text)
+
+    async def _parse_file(self, event: events.UploadEventArguments):
         try:
             buffer = StringIO(event.content.read().decode("utf-8"))
-            log_file = LogFile(buffer)
+            self._set_status_progress("Loading file ...")
+            log_file = await run.cpu_bound(LogFile, buffer)
+            self._set_status_done("File loaded and initialized !")
         except Exception as ex:
-            ui.notify(f"Uploading log file failed with: {str(ex)}")
+            self._set_status_fail(f"Uploading log file failed with: {str(ex)}")
             return
 
-        self._on_upload(log_file)
+        await self._on_upload(log_file)
 
-    def __init__(self, label: str, on_upload: Callable[[LogFile], None]):
-        super().__init__(
-            label=label,
-            on_upload=self._parse_file,
-            auto_upload=True,
-            max_files=1,
-        )
+    def __init__(self, label: str, on_upload: Callable[[LogFile], Awaitable[None]]):
+        with ui.column():
+            super().__init__(
+                label=label,
+                on_upload=self._parse_file,
+                auto_upload=True,
+                on_rejected=lambda _: self._set_status_fail("File rejected"),
+                max_files=1,
+            )
+
+            self._status_element = ui.row()
+            self._status_element.tailwind.align_items("center")
 
         self._on_upload = on_upload
 
+
+def log_line(line: LogLine) -> Element:
+    with ui.grid(columns=3) as el:
+        el.tailwind.flex("auto").align_items("start").gap("2.5").align_content("start").justify_items("start").font_family("mono").user_select("none").text_overflow(
+                "text-clip"
+            )
+        el.style("grid-template-columns: 60px 200px 1fr;")
+        ui.label(f"{line.line_number}")
+        ui.label(f"{str(line.timestamp) if line.has_timestamp else ''}")
+        ui.label(f"{line.line_without_timestamp}")
+
+    return el
 
 def settings_frame() -> Element:
     el = ui.element("div")

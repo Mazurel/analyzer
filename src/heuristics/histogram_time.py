@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple, Optional
 import logging
+from dataclasses import dataclass
 
 from src.logs.types import LogFile, LogLine, NoTimestampException
 from src.heuristics.types import Heuristic
@@ -14,12 +15,17 @@ NUMERICAL_STABILITY_CONSTANT = 1e-4
 DT_PERC = 0.5
 
 
+@dataclass
+class TimeHeuristicMetadata:
+    connected_line: Optional[LogLine] = None
+
+
 class TimeHeuristic(Heuristic):
     def load_grand_truth(self, grand_truth: LogFile):
         self.grand_truth_template_per_line: Dict[int, List[LogLine]] = {}
         self.grand_truth_starting_time: Optional[float] = None
         try:
-            t = grand_truth.lines[0].timestamp
+            t = grand_truth.lines[0].timestamp.get_numeric_value()
             self.grand_truth_starting_time = t
         except NoTimestampException:
             return
@@ -35,8 +41,8 @@ class TimeHeuristic(Heuristic):
         assert self.checked_starting_time is not None
         assert self.grand_truth_starting_time is not None
 
-        t1 = checked.timestamp - self.checked_starting_time
-        t2 = truth.timestamp - self.grand_truth_starting_time
+        t1 = checked.timestamp.get_numeric_value() - self.checked_starting_time
+        t2 = truth.timestamp.get_numeric_value() - self.grand_truth_starting_time
         v = abs(t1 - t2)
         return v
 
@@ -66,8 +72,8 @@ class TimeHeuristic(Heuristic):
             return
 
         try:
-            self.checked_starting_time = checked.lines[0].timestamp
-            self.checked_ending_time = checked.lines[-1].timestamp
+            self.checked_starting_time = checked.lines[0].timestamp.get_numeric_value()
+            self.checked_ending_time = checked.lines[-1].timestamp.get_numeric_value()
             self.max_dt = self.checked_ending_time - self.checked_starting_time
         except NoTimestampException:
             return
@@ -105,10 +111,14 @@ class TimeHeuristic(Heuristic):
 
                 if (i, j) in zip(iter(res[0]), iter(res[1])):
                     if i >= n or j >= m:
-                        checked_lines[i].add_heuristic(heuristic_name, log_dispropotion)
+                        checked_lines[i].add_heuristic(
+                            heuristic_name, log_dispropotion, TimeHeuristicMetadata()
+                        )
                     else:
                         checked_lines[i].add_heuristic(
-                            heuristic_name, max(0, min(1, alg_input[i, j]))
+                            heuristic_name,
+                            max(0, min(1, alg_input[i, j])),
+                            TimeHeuristicMetadata(truth_lines[j]),
                         )
             except NoTimestampException:
                 continue

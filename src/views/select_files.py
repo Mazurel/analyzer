@@ -31,11 +31,11 @@ class SelectFiles(View):
         )
         self.state_changed.send(self)
 
-    def _handle_grand_truth(self, file: LogFile):
+    async def _handle_grand_truth(self, file: LogFile):
         self.grand_truth = file
         self._emit_state_changed()
 
-    def _handle_checked(self, file: LogFile):
+    async def _handle_checked(self, file: LogFile):
         self.checked = file
         self._emit_state_changed()
 
