@@ -26,6 +26,7 @@ class SelectParser(View):
                 )
                 .on(
                     "update:model-value",
+                    lambda: self.state_changed.send(self),
                     throttle=1.0,
                     leading_events=False,
                 )

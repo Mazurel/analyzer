@@ -169,6 +169,7 @@ class LogFile:
         self._lines = [
             LogLine(line, line_number=i + 1) for i, line in enumerate(file.readlines())
         ]
+        self.file_name = None
 
         if len(self._lines) <= 2:
             raise InvalidLogFile("Log file is too short")
@@ -259,6 +260,9 @@ class LogFile:
             ),
         )
         return self.lines[min(index, len(self.lines) - 1)]
+    
+    def set_name(self, name: str):
+        self.file_name = name
 
 
 class MaskingInstruction(NamedTuple):

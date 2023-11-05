@@ -5,38 +5,37 @@ from src.logs.types import LogFile, Template
 from dataclasses import dataclass
 
 from src.consts import LOG_WORKDIR
+from src.logs.parser import ParserManager
 
 
-@dataclass
 class BrainConfig():
-    brain_sim_th: float
-    brain_depth: float
+    def __init__(self) -> None:
+        self.brain_sim_th = 0
+        self.regex_list = []
+        self.log_format = ""
 
 
-class BrainManager():
+class BrainManager(ParserManager):
     def __init__(self, config: BrainConfig) -> None:
         # TODO add condig class for Brain, add regex support and log format
         self.config = config
 
-    def learn(self, log_name: str):
-        self.log_parser = BrainParser(log_format="<Content>", indir=LOG_WORKDIR, outdir=LOG_WORKDIR, depth=self.config.brain_depth, st=self.config.brain_sim_th)
-        self.log_parser.parse(log_name)
+    def learn(self, file: LogFile):
+        self.log_parser = BrainParser(logname=file.file_name, log_format=self.config.log_format, indir=LOG_WORKDIR, outdir=LOG_WORKDIR, delimeter=[], threshold=self.config.brain_sim_th, rex=self.config.regex_list)
+        self.log_parser.parse(file.file_name)
 
     def annotate(self, file: LogFile):
         self.log_parser.df_log
-        # self.build_templates()
-        for line in file.lines:
-            result = self.miner.match(line.line_without_timestamp)
-            line.template = self.templates[result.cluster_id]
+        for idx, line in enumerate(file.lines):
+            template = Template(int(self.log_parser.df_log["EventId"][idx][1:]), self.log_parser.df_log["EventTemplate"][idx])
+            line.template = template
 
 
 class BrainSettingsSchema(Schema):
-    brain_depth = fields.Int(default=10)
     brain_sim_th = fields.Float(default=0.4)
 
     def update_settings(self, data: dict, config: BrainConfig):
         data = self.load(data)
-        config.brain_depth = data["brain_depth"]
         config.brain_sim_th = data["brain_sim_th"]
         return config
     

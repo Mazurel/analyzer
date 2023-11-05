@@ -17,6 +17,7 @@ from src.logs.drain import DrainManager, MaskingInstruction, DrainSettingsSchema
 from src.consts import CONFIGS_LOCAL_PATH
 from src.views.select_files import SelectFiles
 from src.logs.finder import find_masking_instructions
+from src.views.parser_setup import ParserSetup
 
 LABEL_TEXT_1 = "Drain depth ({}): "
 LABEL_TEXT_2 = "Drain Simmilarity threshold ({}): "
@@ -70,7 +71,7 @@ class MaskingInstructionSelection(View):
 
 
 @dataclass
-class DrainSetup(View):
+class DrainSetup(ParserSetup):
     """
     This view is responsible for configuring Drain.
     It supports saving/loading drain configs and tweaking individual options.
@@ -185,7 +186,7 @@ class DrainSetup(View):
                 masking_instruction.on_state_changed(self._emit_state_change_anyargs)
                 self.masking_instructions.append(masking_instruction)
 
-    def build_drain_config(self) -> TemplateMinerConfig:
+    def build_parser_config(self) -> TemplateMinerConfig:
         config = TemplateMinerConfig()
         config.drain_sim_th = self.drain_sim_th
         config.drain_depth = self.drain_depth
@@ -196,12 +197,12 @@ class DrainSetup(View):
         ]
         return config
 
-    def build_drain(self) -> DrainManager:
-        return DrainManager(self.build_drain_config())
+    def build_parser(self) -> DrainManager:
+        return DrainManager(self.build_parser_config())
 
     def save_config(self):
         schema = DrainSettingsSchema()
-        dump: dict = schema.dump(self.build_drain_config())
+        dump: dict = schema.dump(self.build_parser_config())
         config_path = join(CONFIGS_LOCAL_PATH, f"{uuid4()}.toml")
         with open(config_path, "w") as f:
             toml.dump(dump, f)

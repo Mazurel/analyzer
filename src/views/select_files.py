@@ -41,6 +41,7 @@ class SelectFiles(View):
         # TODO 
         # currently temporary save of log file in order to simple use of another parsers
         self.grand_truth_name = "grand_truth.log"
+        file.set_name(self.grand_truth_name)
         with open(os.path.join(LOG_WORKDIR, self.grand_truth_name), "w") as log_file:
             log_file.write(buffer.getvalue())
         await self._emit_state_changed()
@@ -50,6 +51,7 @@ class SelectFiles(View):
         # TODO 
         # currently temporary save of log file in order to simple use of another parsers
         self.checked_name = "checked.log"
+        file.set_name(self.checked_name)
         with open(os.path.join(LOG_WORKDIR, self.checked_name), "w") as log_file:
             log_file.write(buffer.getvalue())
         await self._emit_state_changed()

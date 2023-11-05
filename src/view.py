@@ -9,8 +9,11 @@ from src.views import (
     HeuristicSetup,
     SmartLogView,
     DrainSetup,
+    BrainSetup,
+    LogsSetup,
 )
 
+from src.utils import get_parser_setup
 from fastapi import FastAPI
 from nicegui import ui, app, Client
 
@@ -26,12 +29,13 @@ class State:
     def __init__(self) -> None:
         self.file_select = SelectFiles()
         self.parser_select = SelectParser()
-        self.drain_setup = DrainSetup(select_files=self.file_select)
+        self.parser_setup = get_parser_setup(self.parser_select, self.file_select)
         self.heuristic_setup = HeuristicSetup()
         self.log_view = SmartLogView(
-            drain_setup=self.drain_setup,
+            parser_setup=self.parser_setup,
             heuristic_setup=self.heuristic_setup,
             select_files=self.file_select,
+            select_parser=self.parser_select
         )
         self.footer = Footer()
 
@@ -65,7 +69,7 @@ def start(fastapi_app: FastAPI):
 
         await state.file_select.show()
         await state.parser_select.show()
-        await state.drain_setup.show()
+        await state.parser_setup.show()
         await state.heuristic_setup.show()
         await state.log_view.show()
         await state.footer.show()

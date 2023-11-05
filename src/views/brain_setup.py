@@ -16,6 +16,7 @@ from src.widgets import settings_frame
 from logs.brain import BrainManager, BrainSettingsSchema, BrainConfig
 from src.consts import CONFIGS_LOCAL_PATH
 from src.views.select_files import SelectFiles
+from src.views.parser_setup import ParserSetup
 
 LABEL_TEXT_1 = "Brain depth ({}): "
 LABEL_TEXT_2 = "Brain Simmilarity threshold ({}): "
@@ -23,33 +24,52 @@ LABEL_TEXT_2 = "Brain Simmilarity threshold ({}): "
 logger = logging.getLogger("drain_setup")
 
 @dataclass
-class BrainSetup(View):
+class RegexSelection(View):
+    ready: bool = False
+    regex: str = ""
+
+    def show(self) -> Element:
+        with ui.grid(1, 2) as el:
+            el.tailwind.width("full")
+            self.l2 = ui.input(
+                label="regex",
+                on_change=lambda: self.state_changed.send(self),
+            ).bind_value_to(self, "regex")
+
+        self.container = el
+        return el
+
+    def update(self, sender: object = None):
+        self.l2.value = self.regex
+
+        self.ready = len(self.regex) > 0
+
+    def clear(self):
+        try:
+            self.container.clear()
+            del self.container
+        except AttributeError:
+            # There is no `container` yet defined
+            pass
+
+@dataclass
+class BrainSetup(ParserSetup):
     """
     This view is responsible for configuring Brain.
     It supports saving/loading brain configs and tweaking individual options.
     """
     select_files: SelectFiles
 
-    brain_depth: int = 10
     brain_sim_th: float = 0.4
+    log_format: str = "<Content>"
+    regex_amount: int = 0
+    regex_list: list[RegexSelection] = field(
+        default_factory=lambda: []
+    )
 
     def show(self):
         with settings_frame() as outer:
             with ui.grid(columns=2):
-                self.brain_depth_label = ui.label(LABEL_TEXT_1.format(self.brain_depth))
-                self.brain_depth_slider = ui.slider(
-                    min=2,
-                    max=30,
-                    step=1,
-                    value=self.brain_depth,
-                ).on(
-                    "update:model-value",
-                    lambda: self.state_changed.send(self),
-                    throttle=1.0,
-                    leading_events=False,
-                ).bind_value_to(self, "brain_depth")
-                self.brain_depth_slider.tailwind.width("40")
-
                 self.brain_similarity_label = ui.label(LABEL_TEXT_2.format(self.brain_sim_th))
                 self.brain_similarity_slider = ui.slider(
                     min=0,
@@ -63,6 +83,19 @@ class BrainSetup(View):
                     leading_events=False,
                 ).bind_value_to(self, "brain_sim_th")
                 self.brain_similarity_slider.tailwind.width("40")
+
+                self.log_fomrat_input = ui.input(
+                    label="log_format",
+                    value=self.log_format,
+                    on_change=lambda: self.state_changed.send(self),
+                ).bind_value_to(self, "log_format")
+
+            self.regex_container = ui.element("div")
+            self.regex_n = ui.number(
+                "Regex",
+                value=self.regex_amount,
+                on_change=self.update,
+            ).bind_value_to(self, "regex_amount")
 
             with ui.row() as el:
                 el.tailwind.margin("mt-2")
@@ -93,23 +126,42 @@ class BrainSetup(View):
         return outer
 
     def update(self, sender: object = None):
-        self.brain_depth_label.text = LABEL_TEXT_1.format(self.brain_depth)
-        self.brain_depth_slider.value = self.brain_depth
         self.brain_similarity_label.text = LABEL_TEXT_2.format(self.brain_sim_th)
         self.brain_similarity_slider.value = self.brain_sim_th
+        self.log_fomrat_input.value = self.log_format
+        self.regex_amount = max(0, self.regex_amount)
+        self.regex_n.value = self.regex_amount
 
-    def build_brain_config(self) -> BrainConfig:
+        # Update masking instructions view
+        with self.regex_container:
+            while self.regex_amount < len(self.regex_list):
+                self.regex_list.pop().clear()
+
+            while self.regex_amount > len(self.regex_list):
+                regex = RegexSelection()
+                regex.show()
+                regex.state_changed.connect(
+                    lambda _: self.state_changed.send(self), weak=False
+                )
+                self.regex_list.append(regex)
+
+    def build_parser_config(self) -> BrainConfig:
         config = BrainConfig()
         config.brain_sim_th = self.brain_sim_th
-        config.brain_depth = self.brain_depth
+        config.log_format = self.log_format
+        config.regex_list = [
+            regex.regex
+            for regex in self.regex_list
+            if regex.ready
+        ]
         return config
 
-    def build_brain(self) -> BrainManager:
-        return BrainManager(self.build_brain_config())
+    def build_parser(self) -> BrainManager:
+        return BrainManager(self.build_parser_config())
 
     def save_config(self):
         schema = BrainSettingsSchema()
-        dump: dict = schema.dump(self.build_brain_config())
+        dump: dict = schema.dump(self.build_parser_config())
         config_path = join(CONFIGS_LOCAL_PATH, f"{uuid4()}.toml")
         with open(config_path, "w") as f:
             toml.dump(dump, f)
@@ -120,7 +172,6 @@ class BrainSetup(View):
         schema = BrainSettingsSchema()
         obj = toml.loads(config)
         parsed_config: dict[str, Any] = schema.load(obj)
-        self.brain_depth = parsed_config.get("brain_depth")
         self.brain_sim_th = parsed_config.get("brain_sim_th")
 
         self.state_changed.send(self)
