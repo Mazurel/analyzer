@@ -2,7 +2,9 @@ from dataclasses import dataclass
 from functools import partial
 
 from src.heuristics import manager as heuristics
-from src.views import View, HeuristicSetup, SelectFiles, DrainSetup, LogView
+from src.views import View, HeuristicSetup, SelectFiles, LogView, SelectParser
+from src.views.parser_setup import ParserSetup
+from src.utils import get_parser_setup
 
 from nicegui import ui
 from nicegui.tailwind_types.text_color import TextColor
@@ -14,12 +16,13 @@ class SmartLogView(View):
     This view is responsible for showing log files with their heurstics.
     It also allows interacting with log lines.
     """
-    drain_setup: DrainSetup
+    parser_setup: ParserSetup
     heuristic_setup: HeuristicSetup
     select_files: SelectFiles
+    select_parser: SelectParser
 
     
-    _drain_needs_calculation: bool = False
+    _parser_needs_calculation: bool = False
 
     def update_log_visualization(self):
         self.parent.tailwind.padding("p-5").container().box_shadow(
@@ -30,26 +33,26 @@ class SmartLogView(View):
             self._show_logs_not_loaded()
             return
         
-        if self._drain_needs_calculation:
-            self._recalculate_drain()
+        if self._parser_needs_calculation:
+            self._recalculate_parser()
 
         self._show_logs()
     
-    def _recalculate_drain(self):
+    def _recalculate_parser(self):
         assert (
             self.select_files.grand_truth is not None
             and self.select_files.checked is not None
         )
 
-        drain = self.drain_setup.build_drain()
-        drain.learn(self.select_files.grand_truth)
-        drain.learn(self.select_files.checked)
-        drain.annotate(self.select_files.grand_truth)
-        drain.annotate(self.select_files.checked)
+        parser = self.parser_setup.build_parser()
+        parser.learn(self.select_files.grand_truth)
+        parser.learn(self.select_files.checked)
+        parser.annotate(self.select_files.grand_truth)
+        parser.annotate(self.select_files.checked)
         heuristics.apply_heuristics(
             self.select_files.grand_truth, self.select_files.checked
         )
-        self._drain_needs_calculation = False
+        self._parser_needs_calculation = False
 
     def _show_logs_not_loaded(self):
         ui.label("Please provide files above to see logs here !").tailwind.text_align(
@@ -108,13 +111,18 @@ class SmartLogView(View):
         self.parent = ui.element("div")
         self.heuristic_setup.state_changed.connect(self.update, weak=False)
         self.select_files.state_changed.connect(self.update, weak=False)
-        self.drain_setup.state_changed.connect(self.update, weak=False)
+        self.parser_setup.state_changed.connect(self.update, weak=False)
+        self.select_parser.state_changed.connect(self.update, weak=False)
         with self.parent:
             self.update_log_visualization()
 
     def update(self, sender: object = None):
-        if isinstance(sender, (SelectFiles, DrainSetup)):
-            self._drain_needs_calculation = True
+        if isinstance(sender, (SelectFiles, ParserSetup, SelectParser)):
+            self._parser_needs_calculation = True
+
+        if isinstance(sender, (SelectParser)):
+            self.parser_setup.hide()
+            self.parser_setup = get_parser_setup(self.select_parser, self.select_files)
 
         self.parent.clear()
         with self.parent:

@@ -77,6 +77,7 @@ class LogLine:
 class LogFile:
     def __init__(self, file: TextIO) -> None:
         self._lines = [LogLine(line) for line in file.readlines()]
+        self.file_name = None
 
     @property
     def lines(self) -> list[LogLine]:
@@ -85,6 +86,9 @@ class LogFile:
     def clear_heuristics(self):
         for line in self.lines:
             line.clear_heuristics()
+
+    def set_name(self, name: str):
+        self.file_name = name
 
 
 class MaskingInstruction(NamedTuple):

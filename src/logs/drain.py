@@ -3,6 +3,7 @@ from src.logs.types import LogFile, Template
 from drain3.template_miner_config import TemplateMinerConfig, MaskingInstruction
 from drain3 import TemplateMiner
 from marshmallow import Schema, ValidationError, fields
+from src.logs.parser import ParserManager
 
 
 class MaskingInstructions(fields.Field):
@@ -39,7 +40,7 @@ class DrainSettingsSchema(Schema):
         return config
 
 
-class DrainManager:
+class DrainManager(ParserManager):
     def __init__(self, config: TemplateMinerConfig) -> None:
         self.miner = TemplateMiner(None, config)
 
