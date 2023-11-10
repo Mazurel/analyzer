@@ -86,7 +86,7 @@ class SmartLogView(View):
             if val < self.heuristic_setup.heuristic_cap:
                 continue
 
-            color = COLORS[int(len(COLORS) * val)]
+            color = COLORS[max(int(len(COLORS) * val)-1, 0)]
 
             lbl = ui.label(f"{i + 1}: {line.line}")
             lbl.on("click", partial(preview_log, i))
