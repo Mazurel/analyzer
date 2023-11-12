@@ -3,7 +3,15 @@ from functools import partial
 import math
 
 from src.heuristics import manager as heuristics
-from src.views import View, HeuristicSetup, SelectFiles, DrainSetup, LogView
+from src.views import (
+    View,
+    HeuristicSetup,
+    SelectFiles,
+    DrainSetup,
+    LogView,
+    MultiLogView,
+)
+from src.widgets import log_line
 
 from nicegui import ui
 from nicegui.tailwind_types.text_color import TextColor
@@ -66,8 +74,11 @@ class SmartLogView(View):
         ]
 
         assert self.select_files.checked is not None
+        assert self.select_files.grand_truth is not None
 
-        log_view = LogView(self.select_files.checked)
+        log_view = MultiLogView(
+            self.select_files.checked, self.select_files.grand_truth
+        )
         with ui.dialog() as log_view_dialog:
             log_view_dialog.props(add="full-width")
             log_view.show().tailwind.background_color("white").padding("p-2.5").width(
@@ -87,12 +98,10 @@ class SmartLogView(View):
                 continue
 
             color = COLORS[math.floor(len(COLORS) * val - 1e-6)]
-            lbl = ui.label(f"{i + 1}: {line.line}")
+            lbl = log_line(line)
             lbl.on("click", partial(preview_log, i))
 
-            lbl.tailwind.font_family("mono").user_select("none").text_overflow(
-                "text-clip"
-            ).text_color(color)
+            lbl.tailwind.text_color(color)
             lbl.classes(add="hover:font-bold")
             with lbl:
                 tooltip_text = [
