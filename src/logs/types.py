@@ -177,7 +177,7 @@ class LogFile:
                 p.map(
                     self.extract_timestamp,
                     [line.line for line in self._lines],
-                    chunksize=64,
+                    chunksize=32,
                 )
             ):
                 if r is None:
@@ -215,7 +215,7 @@ class LogFile:
             # Fill in the timestamps !
             for i in range(l1 + 1, l2, 1):
                 self._lines[i].set_timestamp(
-                    self._lines[l1].get_timestamp_as_extraction_result()
+                    ("", self._lines[l1].get_timestamp_as_extraction_result()[1])
                 )
 
     @property
