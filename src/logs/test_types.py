@@ -42,9 +42,10 @@ def test_logline_heuristic():
     line.add_heuristic("Sample", 0.5, {"x": 1})
     assert line.get_heuristic("Sample") == 0.5, "It is possible to add heuristic"
 
-    # There should be no template initially
     with pytest.raises(TypeError):
         line.get_heuristic_metadata("Sample", int)
+
+    assert line.get_heuristic_metadata("Sample", dict)["x"] == 1
 
 
 def test_logline_misc():

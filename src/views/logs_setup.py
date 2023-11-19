@@ -14,12 +14,12 @@ class LogsSetup(View):
 
     timestamp_regex: str = ""
 
-    def show(self):
+    async def show(self):
         with settings_frame() as el:
             ui.input("Timestamp Regexp", on_change=self.update).bind_value_to(
                 self, "timestamp_regex"
             )
         return el
 
-    def update(self, sender: object = None):
+    async def update(self, sender: object = None):
         pass

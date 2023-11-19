@@ -19,7 +19,7 @@ class LogView(View):
     log_file: LogFile
     lines: list[Element] = field(default_factory=lambda: [])
 
-    def show(self) -> Element:
+    async def show(self) -> Element:
         with ui.element("div") as e:
             e.tailwind.space_between("y-1.5").max_width("2xl")
             for i, line in enumerate(self.log_file.lines):
@@ -37,9 +37,6 @@ class LogView(View):
         )
         self.lines[id].tailwind.font_weight("bold")
 
-    def update(self, sender: object = None):
-        pass
-
 
 @dataclass
 class MultiLogView(View):
@@ -53,7 +50,7 @@ class MultiLogView(View):
     lines_left: list[tuple[LogLine, Element]] = field(default_factory=lambda: [])
     lines_right: list[tuple[LogLine, Element]] = field(default_factory=lambda: [])
 
-    def show(self) -> Element:
+    async def show(self) -> Element:
         with ui.grid(columns=2) as e:
             e.tailwind.gap("x-4").height("full")
 
@@ -124,6 +121,3 @@ class MultiLogView(View):
             "scrollIntoView", {"behavior": "smooth", "block": "center"}
         )
         right_line_element.tailwind.font_weight("bold")
-
-    def update(self, sender: object = None):
-        pass

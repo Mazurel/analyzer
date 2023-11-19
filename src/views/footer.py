@@ -4,7 +4,7 @@ from nicegui import ui
 
 
 class Footer(View):
-    def show(self):
+    async def show(self):
         with ui.element("footer") as f:
             f.tailwind.margin("mt-10")
             ui.label("This tool is created for Research Project: ").tailwind.display(
@@ -16,5 +16,5 @@ class Footer(View):
             ).tailwind.font_style("italic").display("inline")
         return f
 
-    def update(self, sender: object = None):
+    async def update(self, sender: object = None):
         pass

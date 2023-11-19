@@ -8,10 +8,9 @@ from src.views import (
     HeuristicSetup,
     SmartLogView,
     DrainSetup,
-    LogsSetup,
 )
 
-from nicegui import ui, app
+from nicegui import ui, app, Client
 
 logging.basicConfig(
     handlers=[
@@ -38,7 +37,7 @@ states: dict[uuid.UUID, State] = {}
 
 
 @ui.page("/")
-def index():
+async def index(client: Client):
     logger = logging.getLogger("index")
     try:
         user_id = uuid.UUID(app.storage.browser.get("id"))
@@ -61,16 +60,17 @@ def index():
     ui.markdown("# Log analyzer")
     ui.markdown("Upload Grand truth and checked file to see analysis result")
 
-    state.file_select.show()
-    state.drain_setup.show()
-    state.heuristic_setup.show()
-    state.log_view.show()
-    state.footer.show()
-
+    await state.file_select.show()
+    await state.drain_setup.show()
+    await state.heuristic_setup.show()
+    await state.log_view.show()
+    await state.footer.show()
     logger.info("Succesfully initialized")
+
+    await client.connected(timeout=30)
+    logger.info("Client connected !")
 
 
 def start():
     app.add_static_files("/configs", "configs/")
-    # TODO: Use better secret
-    ui.run(storage_secret="123")
+

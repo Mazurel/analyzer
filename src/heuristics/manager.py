@@ -20,3 +20,4 @@ def apply_heuristics(grand_truth: LogFile, checked: LogFile):
         heuristic.load_grand_truth(grand_truth)
         heuristic.calculate_heuristic(name, checked)
         logger.info(f"Applying heuristic: {name}")
+    logger.info("All heuristics applied !")

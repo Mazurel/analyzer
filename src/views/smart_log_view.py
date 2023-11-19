@@ -8,7 +8,6 @@ from src.views import (
     HeuristicSetup,
     SelectFiles,
     DrainSetup,
-    LogView,
     MultiLogView,
 )
 from src.widgets import log_line
@@ -30,7 +29,7 @@ class SmartLogView(View):
 
     _drain_needs_calculation: bool = False
 
-    def update_log_visualization(self):
+    async def update_log_visualization(self):
         self.parent.tailwind.padding("p-5").container().box_shadow(
             "inner"
         ).background_color("zinc-300").min_height("max")
@@ -42,7 +41,7 @@ class SmartLogView(View):
         if self._drain_needs_calculation:
             self._recalculate_drain()
 
-        self._show_logs()
+        await self._show_logs()
 
     def _recalculate_drain(self):
         assert (
@@ -65,7 +64,7 @@ class SmartLogView(View):
             "center"
         ).width("full").font_size("lg")
 
-    def _show_logs(self):
+    async def _show_logs(self):
         COLORS: list[TextColor] = [
             "neutral-500",
             "neutral-500",
@@ -81,21 +80,20 @@ class SmartLogView(View):
         )
         with ui.dialog() as log_view_dialog:
             log_view_dialog.props(add="full-width")
-            log_view.show().tailwind.background_color("white").padding("p-2.5").width(
-                "max"
-            )
+            e = await log_view.show()
+            e.tailwind.background_color("white").padding("p-2.5").width("max")
 
         def preview_log(line_id: int):
             log_view_dialog.open()
             log_view.focus_line(line_id)
 
-        for i, line in enumerate(self.select_files.checked.lines):
+        async def make_log_line(i: int, line: "LogLine"):
             val = 0
             for heuristic in line.list_heuristics():
                 val = max(val, line.get_heuristic(heuristic))
 
             if val < self.heuristic_setup.heuristic_cap:
-                continue
+                return
 
             color = COLORS[math.floor(len(COLORS) * val - 1e-6)]
             lbl = log_line(line)
@@ -115,18 +113,25 @@ class SmartLogView(View):
                     "base"
                 ).font_family("mono").whitespace("pre-line")
 
-    def show(self):
-        self.parent = ui.element("div")
-        self.heuristic_setup.state_changed.connect(self.update, weak=False)
-        self.select_files.state_changed.connect(self.update, weak=False)
-        self.drain_setup.state_changed.connect(self.update, weak=False)
-        with self.parent:
-            self.update_log_visualization()
+        for i, line in enumerate(self.select_files.checked.lines):
+            await make_log_line(i, line)
 
-    def update(self, sender: object = None):
+    async def show(self):
+        self.parent = ui.element("div")
+        self.heuristic_setup.on_state_changed(self.update)
+        self.select_files.on_state_changed(self.update)
+        self.drain_setup.on_state_changed(self.update)
+        with self.parent:
+            await self.update_log_visualization()
+
+    async def update(self, sender: object = None):
         if isinstance(sender, (SelectFiles, DrainSetup)):
             self._drain_needs_calculation = True
 
-        self.parent.clear()
+        try:
+            self.parent.clear()
+        except KeyError:
+            pass
+
         with self.parent:
-            self.update_log_visualization()
+            await self.update_log_visualization()
