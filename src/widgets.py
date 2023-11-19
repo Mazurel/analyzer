@@ -1,10 +1,15 @@
 from io import StringIO
+import gc
 from typing import Callable, Awaitable
+from asyncio import Lock
 
 from src.logs.types import LogFile, LogLine
 
 from nicegui import ui, events, run
 from nicegui.element import Element
+
+
+parsing_file_lock = Lock()
 
 
 class LogFileUpload(ui.upload):
@@ -27,16 +32,26 @@ class LogFileUpload(ui.upload):
             ui.label(text)
 
     async def _parse_file(self, event: events.UploadEventArguments):
+        global parsing_file_lock
+
+        log_file = None
+        self._set_status_progress("Waiting for file parsing lock ...")
+        await parsing_file_lock.acquire()
+
         try:
+            self._set_status_progress("Decoding file ...")
             buffer = await run.io_bound(lambda: StringIO(event.content.read().decode("utf-8")))
-            self._set_status_progress("Loading file ...")
+            self._set_status_progress("Parsing file ...")
             log_file = await run.cpu_bound(LogFile, buffer)
             self._set_status_done("File loaded and initialized !")
         except Exception as ex:
             self._set_status_fail(f"Uploading log file failed with: {str(ex)}")
-            return
+        finally:
+            gc.collect(0)  # Clear memory afterwards as well as possible
+            parsing_file_lock.release()
 
-        await self._on_upload(log_file)
+        if log_file is not None:
+            await self._on_upload(log_file)
 
     def __init__(self, label: str, on_upload: Callable[[LogFile], Awaitable[None]]):
         with ui.column():
