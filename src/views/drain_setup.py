@@ -30,22 +30,22 @@ class MaskingInstructionSelection(View):
     instruction_name: str = ""
     instruction_regex: str = ""
 
-    def show(self) -> Element:
+    async def show(self) -> Element:
         with ui.grid(rows=1, columns=2) as el:
             el.tailwind.width("full")
             self.l1 = ui.input(
                 label="Masking instruction name",
-                on_change=lambda: self.state_changed.send(self),
+                on_change=self._emit_state_change,
             ).bind_value_to(self, "instruction_name")
             self.l2 = ui.input(
                 label="Masking instruction regex",
-                on_change=lambda: self.state_changed.send(self),
+                on_change=self._emit_state_change,
             ).bind_value_to(self, "instruction_regex")
 
         self.container = el
         return el
 
-    def update(self, sender: object = None):
+    async def update(self, sender: object = None):
         self.l1.value = self.instruction_name
         self.l2.value = self.instruction_regex
 
@@ -55,13 +55,12 @@ class MaskingInstructionSelection(View):
     def instruction(self):
         return MaskingInstruction(self.instruction_regex, self.instruction_name)
 
-    @instruction.setter
-    def instruction(self, val: MaskingInstruction):
+    async def update_instruction(self, val: MaskingInstruction):
         self.instruction_regex = val.pattern
         self.instruction_name = val.mask_with
-        self.state_changed.send(self)
+        await self._emit_state_change()
 
-    def clear(self):
+    async def clear(self):
         try:
             self.container.clear()
             del self.container
@@ -86,7 +85,7 @@ class DrainSetup(View):
         default_factory=lambda: []
     )
 
-    def show(self):
+    async def show(self):
         with settings_frame() as outer:
             with ui.grid(columns=2):
                 self.drain_depth_label = ui.label(LABEL_TEXT_1.format(self.drain_depth))
@@ -99,7 +98,7 @@ class DrainSetup(View):
                     )
                     .on(
                         "update:model-value",
-                        lambda: self.state_changed.send(self),
+                        self._emit_state_change,
                         throttle=1.0,
                         leading_events=False,
                     )
@@ -119,7 +118,7 @@ class DrainSetup(View):
                     )
                     .on(
                         "update:model-value",
-                        lambda: self.state_changed.send(self),
+                        self._emit_state_change,
                         throttle=1.0,
                         leading_events=False,
                     )
@@ -140,10 +139,10 @@ class DrainSetup(View):
 
                 with ui.dialog() as dialog:
 
-                    def on_file(event: events.UploadEventArguments):
+                    async def on_file(event: events.UploadEventArguments):
                         try:
                             buffer = StringIO(event.content.read().decode("utf-8"))
-                            self.load_config(buffer.read())
+                            await self.load_config(buffer.read())
                             dialog.close()
                         except Exception as ex:
                             ui.notify(f"Uploading config file failed with: {str(ex)}")
@@ -167,7 +166,7 @@ class DrainSetup(View):
 
         return outer
 
-    def update(self, sender: object = None):
+    async def update(self, sender: object = None):
         self.masking_instructions_amount = max(0, self.masking_instructions_amount)
         self.drain_depth_label.text = LABEL_TEXT_1.format(self.drain_depth)
         self.drain_depth_slider.value = self.drain_depth
@@ -178,14 +177,12 @@ class DrainSetup(View):
         # Update masking instructions view
         with self.masking_instructions_container:
             while self.masking_instructions_amount < len(self.masking_instructions):
-                self.masking_instructions.pop().clear()
+                await self.masking_instructions.pop().clear()
 
             while self.masking_instructions_amount > len(self.masking_instructions):
                 masking_instruction = MaskingInstructionSelection()
-                masking_instruction.show()
-                masking_instruction.state_changed.connect(
-                    lambda _: self.state_changed.send(self), weak=False
-                )
+                await masking_instruction.show()
+                masking_instruction.on_state_changed(self._emit_state_change_anyargs)
                 self.masking_instructions.append(masking_instruction)
 
     def build_drain_config(self) -> TemplateMinerConfig:
@@ -211,7 +208,7 @@ class DrainSetup(View):
 
         ui.download(config_path)
 
-    def load_config(self, config: str):
+    async def load_config(self, config: str):
         schema = DrainSettingsSchema()
         obj = toml.loads(config)
         parsed_config: dict[str, Any] = schema.load(obj)
@@ -219,22 +216,20 @@ class DrainSetup(View):
         self.drain_sim_th = parsed_config.get("drain_sim_th")
 
         for i in self.masking_instructions:
-            i.clear()
+            await i.clear()
         self.masking_instructions.clear()
 
         with self.masking_instructions_container:
             for instr in parsed_config.get("masking_instructions"):
                 instruction = MaskingInstructionSelection()
-                instruction.show()
-                instruction.instruction = instr
-                instruction.state_changed.connect(
-                    lambda _: self.state_changed.send(self), weak=False
-                )
+                await instruction.show()
+                await instruction.update_instruction(instr)
+                instruction.on_state_changed(self._emit_state_change_anyargs)
                 self.masking_instructions.append(instruction)
             self.masking_instructions_amount = len(self.masking_instructions)
-        self.state_changed.send(self)
+        await self._emit_state_change()
 
-    def automatically_find_masking_instructions(self):
+    async def automatically_find_masking_instructions(self):
         if self.select_files.checked is None:
             ui.notify("No checked file loaded !", type="negative")
             return
@@ -257,9 +252,9 @@ class DrainSetup(View):
 
             with self.masking_instructions_container:
                 new_masking_instruction = MaskingInstructionSelection()
-                new_masking_instruction.show()
-                new_masking_instruction.instruction = MaskingInstruction(
-                    new_instruction.regex, new_instruction.name
+                await new_masking_instruction.show()
+                await new_masking_instruction.update_instruction(
+                    MaskingInstruction(new_instruction.regex, new_instruction.name)
                 )
 
                 self.masking_instructions.append(new_masking_instruction)

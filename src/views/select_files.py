@@ -19,31 +19,30 @@ class SelectFiles(View):
         FILES_UPLOADED = auto()
         FILES_NOT_UPLOADED = auto()
 
-    state: State = State.FILES_NOT_UPLOADED
     grand_truth: Optional[LogFile] = None
     checked: Optional[LogFile] = None
 
-    def _emit_state_changed(self):
-        self.state = (
+    @property
+    def state(self) -> State:
+        return (
             self.State.FILES_UPLOADED
             if self.grand_truth is not None and self.checked is not None
             else self.State.FILES_NOT_UPLOADED
         )
-        self.state_changed.send(self)
 
     async def _handle_grand_truth(self, file: LogFile):
         self.grand_truth = file
-        self._emit_state_changed()
+        await self._emit_state_change()
 
     async def _handle_checked(self, file: LogFile):
         self.checked = file
-        self._emit_state_changed()
+        await self._emit_state_change()
 
-    def show(self):
+    async def show(self):
         with ui.row() as r:
             LogFileUpload("Upload Grand Truth file", on_upload=self._handle_grand_truth)
             LogFileUpload("Upload Checked file", on_upload=self._handle_checked)
         return r
 
-    def update(self, sender: object = None):
+    async def update(self, sender: object = None):
         pass

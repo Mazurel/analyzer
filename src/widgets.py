@@ -28,7 +28,7 @@ class LogFileUpload(ui.upload):
 
     async def _parse_file(self, event: events.UploadEventArguments):
         try:
-            buffer = StringIO(event.content.read().decode("utf-8"))
+            buffer = await run.io_bound(lambda: StringIO(event.content.read().decode("utf-8")))
             self._set_status_progress("Loading file ...")
             log_file = await run.cpu_bound(LogFile, buffer)
             self._set_status_done("File loaded and initialized !")
