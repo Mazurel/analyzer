@@ -12,7 +12,8 @@ To do that, please see installation guide: https://python-poetry.org/docs/
 
 ```shell
 poetry install
-poetry run python main.py
+bash start.sh dev  # For development server
+bash start.sh prod # For production server
 ```
 
 ## Running tests

@@ -19,5 +19,5 @@ def apply_heuristics(grand_truth: LogFile, checked: LogFile):
     for name, heuristic in HEURISTICS:
         heuristic.load_grand_truth(grand_truth)
         heuristic.calculate_heuristic(name, checked)
-        logger.info(f"Applying heuristic: {name}")
+        logger.info(f"Applied heuristic: {name}")
     logger.info("All heuristics applied !")

@@ -12,7 +12,7 @@ from src.views import (
 )
 from src.widgets import log_line
 
-from nicegui import ui
+from nicegui import ui, run
 from nicegui.tailwind_types.text_color import TextColor
 
 
@@ -35,34 +35,38 @@ class SmartLogView(View):
         ).background_color("zinc-300").min_height("max")
 
         if self.select_files.state == SelectFiles.State.FILES_NOT_UPLOADED:
-            self._show_logs_not_loaded()
+            await self._show_logs_not_loaded(
+                "Please upload both files to see something here"
+            )
             return
 
         if self._drain_needs_calculation:
-            self._recalculate_drain()
+            await self._recalculate_drain()
 
         await self._show_logs()
 
-    def _recalculate_drain(self):
+    async def _recalculate_drain(self):
         assert (
             self.select_files.grand_truth is not None
             and self.select_files.checked is not None
         )
 
+        await self._show_logs_not_loaded("Initializing log clustering ...")
         drain = self.drain_setup.build_drain()
         drain.learn(self.select_files.grand_truth)
         drain.learn(self.select_files.checked)
         drain.annotate(self.select_files.grand_truth)
         drain.annotate(self.select_files.checked)
+        await self._show_logs_not_loaded("Calculating heuristics ...")
         heuristics.apply_heuristics(
             self.select_files.grand_truth, self.select_files.checked
         )
+
         self._drain_needs_calculation = False
 
-    def _show_logs_not_loaded(self):
-        ui.label("Please provide files above to see logs here !").tailwind.text_align(
-            "center"
-        ).width("full").font_size("lg")
+    async def _show_logs_not_loaded(self, status: str):
+        self.parent.clear()
+        ui.label(status).tailwind.text_align("center").width("full").font_size("lg")
 
     async def _show_logs(self):
         COLORS: list[TextColor] = [
@@ -75,27 +79,35 @@ class SmartLogView(View):
         assert self.select_files.checked is not None
         assert self.select_files.grand_truth is not None
 
-        log_view = MultiLogView(
-            self.select_files.checked, self.select_files.grand_truth
-        )
-        with ui.dialog() as log_view_dialog:
-            log_view_dialog.props(add="full-width")
-            e = await log_view.show()
-            e.tailwind.background_color("white").padding("p-2.5").width("max")
+        async def preview_log(line_id: int):
+            assert self.select_files.checked is not None
+            assert self.select_files.grand_truth is not None
 
-        def preview_log(line_id: int):
-            log_view_dialog.open()
-            log_view.focus_line(line_id)
+            log_view = MultiLogView(
+                self.select_files.checked, self.select_files.grand_truth
+            )
+            with ui.dialog(value=True) as log_view_dialog:
+                log_view_dialog.props(add="full-width")
+                e = await log_view.show()
+                e.tailwind.background_color("white").padding("p-2.5").width("max")
+                log_view.focus_line(line_id)
 
-        async def make_log_line(i: int, line: "LogLine"):
+            await log_view_dialog
+            del log_view_dialog
+            del log_view
+
+        await self._show_logs_not_loaded("Building logs ...")
+        self.parent.clear()
+        for i, line in enumerate(self.select_files.checked.lines):
             val = 0
             for heuristic in line.list_heuristics():
                 val = max(val, line.get_heuristic(heuristic))
 
             if val < self.heuristic_setup.heuristic_cap:
-                return
+                continue
 
-            color = COLORS[math.floor(len(COLORS) * val - 1e-6)]
+            val = max(0, min(0.999, val + 1e-6))
+            color = COLORS[math.floor(len(COLORS) * val)]
             lbl = log_line(line)
             lbl.on("click", partial(preview_log, i))
 
@@ -112,9 +124,6 @@ class SmartLogView(View):
                 ui.tooltip("\n".join(tooltip_text)).tailwind.font_size(
                     "base"
                 ).font_family("mono").whitespace("pre-line")
-
-        for i, line in enumerate(self.select_files.checked.lines):
-            await make_log_line(i, line)
 
     async def show(self):
         self.parent = ui.element("div")

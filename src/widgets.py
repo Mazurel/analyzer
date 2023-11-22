@@ -39,8 +39,9 @@ class LogFileUpload(ui.upload):
         await parsing_file_lock.acquire()
 
         try:
-            self._set_status_progress("Decoding file ...")
-            buffer = await run.io_bound(lambda: StringIO(event.content.read().decode("utf-8")))
+            buffer = await run.io_bound(
+                lambda: StringIO(event.content.read().decode("utf-8"))
+            )
             self._set_status_progress("Parsing file ...")
             log_file = await run.cpu_bound(LogFile, buffer)
             self._set_status_done("File loaded and initialized !")
@@ -71,15 +72,18 @@ class LogFileUpload(ui.upload):
 
 def log_line(line: LogLine) -> Element:
     with ui.grid(columns=3) as el:
-        el.tailwind.flex("auto").align_items("start").gap("2.5").align_content("start").justify_items("start").font_family("mono").user_select("none").text_overflow(
-                "text-clip"
-            )
+        el.tailwind.flex("auto").align_items("start").gap("2.5").align_content(
+            "start"
+        ).justify_items("start").font_family("mono").user_select("none").text_overflow(
+            "text-clip"
+        )
         el.style("grid-template-columns: 60px 200px 1fr;")
         ui.label(f"{line.line_number}")
         ui.label(f"{str(line.timestamp) if line.has_timestamp else ''}")
         ui.label(f"{line.line_without_timestamp}")
 
     return el
+
 
 def settings_frame() -> Element:
     el = ui.element("div")

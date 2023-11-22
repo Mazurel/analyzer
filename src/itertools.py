@@ -2,7 +2,10 @@ from typing import Iterable, TypeVar, Callable, List
 
 T = TypeVar("T")
 
-def contains_at_least_n(it: Iterable[T], n: int, predicate: Callable[[T], bool]) -> bool:
+
+def contains_at_least_n(
+    it: Iterable[T], n: int, predicate: Callable[[T], bool]
+) -> bool:
     """
     Returns `True` if iterator `it` contains at least `n` elements
     that return `True` when given as an argument to the `predicate`
@@ -20,6 +23,7 @@ def contains_at_least_n(it: Iterable[T], n: int, predicate: Callable[[T], bool])
 
     return False
 
+
 def find_left(ls: List[T], predicate: Callable[[T], bool], start_index=0) -> int:
     """
     Find index of the first element in `ls` matching `predicate`.
@@ -36,10 +40,8 @@ def find_left(ls: List[T], predicate: Callable[[T], bool], start_index=0) -> int
     if start_index >= len(ls):
         return -1
 
-
     for i, e in enumerate(ls[start_index:]):
         if predicate(e):
             return i + start_index
 
     return -1
-
