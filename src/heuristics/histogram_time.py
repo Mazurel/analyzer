@@ -121,4 +121,5 @@ class TimeHeuristic(Heuristic):
                             TimeHeuristicMetadata(truth_lines[j]),
                         )
             except NoTimestampException:
+                log.info("Skipping ...")
                 continue
