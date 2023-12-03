@@ -109,8 +109,12 @@ class TimeHeuristic(Heuristic):
                     npt.NDArray[np.int_], npt.NDArray[np.int_]
                 ] = optimize.linear_sum_assignment(alg_input)
 
-                if (i, j) in zip(iter(res[0]), iter(res[1])):
-                    if i >= n or j >= m:
+                for x in range(res[0].shape[0]):
+                    j: int = res[0][x]
+                    i: int = res[1][x]
+                    if i >= n:
+                        pass
+                    elif j >= m:
                         checked_lines[i].add_heuristic(
                             heuristic_name, log_dispropotion, TimeHeuristicMetadata()
                         )

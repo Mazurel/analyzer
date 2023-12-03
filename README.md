@@ -22,5 +22,6 @@ This project uses `pytest` for testing.
 To run full test suite, run:
 
 ```shell
-poetry run python test.py
+bash test.sh
 ```
+

@@ -2,10 +2,10 @@ from .view import View
 from .select_files import SelectFiles
 from .heuristic_setup import HeuristicSetup
 from .drain_setup import DrainSetup
-from .log_view import LogView, MultiLogView
 from .logs_setup import LogsSetup
 from .smart_log_view import SmartLogView
 from .footer import Footer
+from .log_views import LogViewWrapper
 
 __all__ = [
     "View",
@@ -14,7 +14,6 @@ __all__ = [
     "SelectFiles",
     "SmartLogView",
     "DrainSetup",
-    "LogView",
     "LogsSetup",
-    "MultiLogView",
+    "LogViewWrapper",
 ]
