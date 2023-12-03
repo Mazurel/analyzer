@@ -21,3 +21,11 @@ def apply_heuristics(grand_truth: LogFile, checked: LogFile):
         heuristic.calculate_heuristic(name, checked)
         logger.info(f"Applied heuristic: {name}")
     logger.info("All heuristics applied !")
+
+
+def query_heuristic_name(t: type):
+    for name, instance in HEURISTICS:
+        if type(instance) is t:
+            return name
+
+    raise TypeError(f"Unknown heuristic type: {t}")

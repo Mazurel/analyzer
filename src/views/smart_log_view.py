@@ -3,13 +3,11 @@ from functools import partial
 import math
 
 from src.heuristics import manager as heuristics
-from src.views import (
-    View,
-    HeuristicSetup,
-    SelectFiles,
-    DrainSetup,
-    MultiLogView,
-)
+from src.views.view import View
+from src.views.heuristic_setup import HeuristicSetup
+from src.views.select_files import SelectFiles
+from src.views.drain_setup import DrainSetup
+from src.views.log_views import LogViewWrapper
 from src.widgets import log_line
 
 from nicegui import ui, run
@@ -83,14 +81,14 @@ class SmartLogView(View):
             assert self.select_files.checked is not None
             assert self.select_files.grand_truth is not None
 
-            log_view = MultiLogView(
+            log_view = LogViewWrapper(
                 self.select_files.checked, self.select_files.grand_truth
             )
             with ui.dialog(value=True) as log_view_dialog:
-                log_view_dialog.props(add="full-width")
+                log_view_dialog.props(add="full-width").props(add="full-height")
                 e = await log_view.show()
                 e.tailwind.background_color("white").padding("p-2.5").width("max")
-                log_view.focus_line(line_id)
+                await log_view.focus_line(line_id)
 
             await log_view_dialog
             del log_view_dialog

@@ -1,58 +1,28 @@
 from dataclasses import dataclass, field
 
+from src.logs.types import LogLine
+from src.heuristics.histogram_time import TimeHeuristicMetadata
+from src.views.log_views.base import BaseLogView
+from src.heuristics.manager import query_heuristic_name
+from src.heuristics.histogram_time import TimeHeuristic
+
+from nicegui import ui
 from nicegui.element import Element
 
-from src.logs.types import LogFile, LogLine
-from src.heuristics.histogram_time import TimeHeuristicMetadata
-
-from .view import View
-from nicegui import ui
-
 
 @dataclass
-class LogView(View):
+class MultiLogView(BaseLogView):
     """
     This view shows log file.
     It also alows focusing lines by ID.
     """
 
-    log_file: LogFile
-    lines: list[Element] = field(default_factory=lambda: [])
-
-    async def show(self) -> Element:
-        with ui.element("div") as e:
-            e.tailwind.space_between("y-1.5").max_width("2xl")
-            for i, line in enumerate(self.log_file.lines):
-                lbl = ui.label(f"{i + 1}: {line.line}")
-                self.lines.append(lbl)
-                lbl.tailwind.font_family("mono")
-        return e
-
-    def focus_line(self, id: int):
-        for line in self.lines:
-            line.classes(remove="font-bold")
-
-        self.lines[id].run_method(
-            "scrollIntoView", {"behavior": "smooth", "block": "center"}
-        )
-        self.lines[id].tailwind.font_weight("bold")
-
-
-@dataclass
-class MultiLogView(View):
-    """
-    This view shows log file.
-    It also alows focusing lines by ID.
-    """
-
-    left_log_file: LogFile
-    right_log_file: LogFile
     lines_left: list[tuple[LogLine, Element]] = field(default_factory=lambda: [])
     lines_right: list[tuple[LogLine, Element]] = field(default_factory=lambda: [])
 
     async def show(self) -> Element:
         with ui.grid(columns=2) as e:
-            e.tailwind.gap("x-4").height("full")
+            e.tailwind.gap("x-4")
 
             with ui.element("div"):
                 ui.label("Checked").tailwind.font_size("3xl").text_align(
@@ -65,7 +35,6 @@ class MultiLogView(View):
                         for i, line in enumerate(self.left_log_file.lines):
                             lbl = ui.label(f"{i + 1}: {line.line}")
                             lbl.tailwind.font_family("mono")
-
                             self.lines_left.append((line, lbl))
 
             with ui.element("div"):
@@ -84,7 +53,7 @@ class MultiLogView(View):
 
         return e
 
-    def focus_line(self, id: int):
+    async def focus_line(self, id: int):
         for _, left_line in self.lines_left:
             left_line.classes(remove="font-bold")
 
@@ -100,7 +69,7 @@ class MultiLogView(View):
         right_line_element = None
         try:
             meta = left_line.get_heuristic_metadata(
-                "Time Heuristic", TimeHeuristicMetadata
+                query_heuristic_name(TimeHeuristic), TimeHeuristicMetadata
             )
             if meta.connected_line is not None:
                 _, right_line_element = self.lines_right[
