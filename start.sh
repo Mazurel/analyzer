@@ -2,7 +2,7 @@
 
 # Based on: https://github.com/zauberzeug/nicegui/tree/main/examples/fastapi/
 
-set -xe
+set -xem
 
 # use path of this example as working directory; enables starting this script from anywhere
 cd "$(dirname "$0")"
@@ -14,7 +14,10 @@ if [ "$1" = "prod" ]; then
 elif [ "$1" = "dev" ]; then
     echo "Starting Uvicorn server in development mode..."
     # reload implies workers = 1
-    poetry run uvicorn main:app --reload --log-level info --port 8000
+    poetry run uvicorn main:app --reload --log-level info --port 8000 &
+    sleep 5s
+    python -c 'import webbrowser; webbrowser.open("http://127.0.0.1:8000/")'
+    fg
 else
     echo "Invalid parameter. Use 'prod' or 'dev'."
     exit 1
