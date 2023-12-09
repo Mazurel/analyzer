@@ -12,7 +12,7 @@ from scipy import optimize
 
 log = logging.getLogger("TimeHeuristic")
 NUMERICAL_STABILITY_CONSTANT = 1e-4
-DT_PERC = 0.5
+DT_PERC = 0.9
 
 
 @dataclass
@@ -98,7 +98,8 @@ class TimeHeuristic(Heuristic):
                     for l in checked_lines:
                         l.add_heuristic(heuristic_name, log_dispropotion)
 
-                dts = np.zeros((max(n, m), max(n, m)))
+                s = max(n, m)
+                dts = np.zeros((s, s))
                 for i in range(n):
                     for j in range(m):
                         dt = self.calculate_dt(checked_lines[i], truth_lines[j])
