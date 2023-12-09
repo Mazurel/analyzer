@@ -163,6 +163,7 @@ class LogFile:
         return extract(line)
 
     def __init__(self, file: TextIO) -> None:
+        CHUNKSIZE = 32
         # TODO: Add check if timestamps are "sorted"
         #       , if not, sort the file
         self._lines = [
@@ -177,7 +178,7 @@ class LogFile:
                 p.map(
                     self.extract_timestamp,
                     [line.line for line in self._lines],
-                    chunksize=32,
+                    chunksize=CHUNKSIZE,
                 )
             ):
                 if r is None:

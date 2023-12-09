@@ -10,8 +10,10 @@ from src.heuristics.histogram_time import TimeHeuristic
 
 from nicegui import ui
 from nicegui.element import Element
+from nicegui.tailwind_types.background_color import BackgroundColor
 
 log = logging.getLogger("DiffLogView")
+
 
 @dataclass
 class DiffLogView(BaseLogView):
@@ -22,18 +24,31 @@ class DiffLogView(BaseLogView):
 
     lines: list[tuple[Element, list[Element]]] = field(default_factory=lambda: [])
 
-    def build_log_buffers(self) -> Generator[tuple[LogLine, list[LogLine]], None, None]:
+    def build_log_buffers(self) -> list[tuple[LogLine, list[LogLine]]]:
+        used_line_numbers: set[int] = set()
+        result: list[tuple[LogLine, list[LogLine]]] = []
+
         for line in self.left_log_file.lines:
+            arr = []
+            result.append((line, arr))
             try:
                 meta = line.get_heuristic_metadata(
                     query_heuristic_name(TimeHeuristic), TimeHeuristicMetadata
                 )
                 if meta.connected_line is not None:
-                    yield (line, [meta.connected_line])
-                    continue
+                    used_line_numbers.add(meta.connected_line.line_number)
+                    arr.append(meta.connected_line)
             except ValueError:
                 pass
-            yield (line, [])
+
+        for line_left in filter(lambda l: l.line_number not in used_line_numbers, self.right_log_file.lines):
+            l = self.left_log_file.find_closest_line_by_relative_timestamp(line_left.timestamp.get_relative_numeric_value(self.right_log_file.starting_time))
+            result[l.line_number - 1][1].append(line_left)
+
+        for _, line_list in result:
+            line_list.sort(key=lambda l: l.line_number)
+
+        return result
 
     def show_heading(self, text: str):
         ui.label(text).tailwind.font_size("3xl").text_align(
@@ -45,35 +60,45 @@ class DiffLogView(BaseLogView):
         self.lines = []
 
         with ui.grid(columns=2) as e:
-            def update_scroll_percentage(e):
+            def update_left_scroll_area(e):
                 p: float = e.vertical_percentage
                 left_scroll_area.scroll_to(percent=p)
+
+            def update_right_scroll_area(e):
+                p: float = e.vertical_percentage
                 right_scroll_area.scroll_to(percent=p)
 
             e.tailwind.gap("x-4")
 
             with ui.element("div"):
                 self.show_heading("Checked")
-                with ui.scroll_area(on_scroll=update_scroll_percentage) as left_scroll_area:
+                with ui.scroll_area(on_scroll=update_right_scroll_area) as left_scroll_area:
                     left_scroll_area.tailwind.space_between("y-1").height("full")
                     left_column = ui.element("div")
                     left_column.tailwind.width("max").height("max")
 
             with ui.element("div"):
                 self.show_heading("Grand Truth")
-                with ui.scroll_area(on_scroll=update_scroll_percentage) as right_scroll_area:
+                with ui.scroll_area() as right_scroll_area:
                     right_scroll_area.tailwind.space_between("y-1").height("full")
                     right_column = ui.element("div")
                     right_column.tailwind.width("max").height("max")
 
-            for i, (line, lines) in enumerate(self.build_log_buffers()):
+            for group_id, (line, lines) in enumerate(self.build_log_buffers()):
+                COLORS: list[BackgroundColor] = [
+                    "cyan-50",
+                    "cyan-100"
+                ]
+
                 def log_line(txt: str):
                     lbl = ui.label(f"{txt}")
-                    lbl.tailwind.font_family("mono")
+                    lbl.tailwind.font_family("mono").background_color(COLORS[group_id % 2])
                     return lbl
 
                 with left_column:
                     left_line = log_line(f"{line.line_number}: {line.line}")
+                    for _ in range(len(lines) - 1):
+                        log_line("+++")
 
                 right_lines = []
                 with right_column:
@@ -91,14 +116,11 @@ class DiffLogView(BaseLogView):
     async def focus_line(self, id: int):
         left_line, right_lines = self.lines[id]
 
-        left_line.run_method(
-            "scrollIntoView", {"behavior": "smooth", "block": "center"}
-        )
         left_line.tailwind.font_weight("bold")
+        left_line.run_method(
+            "scrollIntoView", {"block": "center"}
+        )
 
-        for l in right_lines:
-            l.run_method(
-                "scrollIntoView", {"behavior": "smooth", "block": "center"}
-            )
-            l.tailwind.font_weight("bold")
+        for line in right_lines:
+            line.tailwind.font_weight("bold")
 
