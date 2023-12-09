@@ -50,18 +50,19 @@ random_diff_templates = generate_templates(num_diff_templates, max_line_length, 
 diff_templates.extend(random_templates)
 
 with open('./output/log1.txt', 'w') as file1, open('./output/log2.txt', 'w') as file2:
-    for _ in range(num_lines):
+    for i, _ in enumerate(range(num_lines)):
         template_index = random.randint(0, len(common_templates) - 1)
         template1 = common_templates[template_index]
         template2 = common_templates[template_index].copy()
+        timestamp = f"[{i}.0] "
 
         # Making a small difference in the second log by changing a part of the template
         if random.random() < diff_template_chance:
             diff_template_index = random.randint(0, len(diff_templates) - 1)
             template2 = diff_templates[diff_template_index]
 
-        log_line1 = generate_log_line(template1)
-        log_line2 = generate_log_line(template2)
+        log_line1 = timestamp + generate_log_line(template1)
+        log_line2 = timestamp + generate_log_line(template2)
 
         file1.write(log_line1 + '\n')
         file2.write(log_line2 + '\n')

@@ -19,7 +19,7 @@ class LogView(BaseLogView):
     async def show(self) -> Element:
         with ui.scroll_area() as e:
             e.tailwind.space_between("y-10").max_width("2xl")
-            for i, line in enumerate(self.right_log_file.lines):
+            for i, line in enumerate(self.left_log_file.lines):
                 lbl = ui.label(f"{i + 1}: {line.line}")
                 self.lines.append(lbl)
                 lbl.tailwind.font_family("mono")
