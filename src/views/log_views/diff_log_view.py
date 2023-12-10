@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Generator
 import logging
+import math
+
+from nicegui.elements.scroll_area import ScrollArea
 
 from src.logs.types import LogLine
 from src.heuristics.histogram_time import TimeHeuristicMetadata
@@ -10,9 +13,14 @@ from src.heuristics.histogram_time import TimeHeuristic
 
 from nicegui import ui
 from nicegui.element import Element
+from nicegui.elements.scroll_area import ScrollEventArguments
 from nicegui.tailwind_types.background_color import BackgroundColor
 
 log = logging.getLogger("DiffLogView")
+
+
+def are_the_same(f1: float, f2: float) -> bool:
+    return abs(f1 - f2) < 1
 
 
 @dataclass
@@ -23,6 +31,8 @@ class DiffLogView(BaseLogView):
     """
 
     lines: list[tuple[Element, list[Element]]] = field(default_factory=lambda: [])
+    scroll_areas: list[ScrollArea] = field(default_factory=lambda: [])
+    scroll_offset: float = 0.0
 
     def build_log_buffers(self) -> list[tuple[LogLine, list[LogLine]]]:
         used_line_numbers: set[int] = set()
@@ -55,34 +65,34 @@ class DiffLogView(BaseLogView):
             "center"
         ).height("fit")
 
+    async def sync_scroll_areas(self, e: ScrollEventArguments):
+        dest_scroll_offset: float = math.floor(e.vertical_position)
+
+        if not are_the_same(dest_scroll_offset, self.scroll_offset):
+            self.scroll_offset = dest_scroll_offset
+            await self._emit_state_change()
 
     async def show(self) -> Element:
         self.lines = []
 
         with ui.grid(columns=2) as e:
-            def update_left_scroll_area(e):
-                p: float = e.vertical_percentage
-                left_scroll_area.scroll_to(percent=p)
-
-            def update_right_scroll_area(e):
-                p: float = e.vertical_percentage
-                right_scroll_area.scroll_to(percent=p)
-
             e.tailwind.gap("x-4")
 
             with ui.element("div"):
                 self.show_heading("Checked")
-                with ui.scroll_area(on_scroll=update_right_scroll_area) as left_scroll_area:
+                with ui.scroll_area(on_scroll=self.sync_scroll_areas) as left_scroll_area:
                     left_scroll_area.tailwind.space_between("y-1").height("full")
                     left_column = ui.element("div")
                     left_column.tailwind.width("max").height("max")
+                    self.scroll_areas.append(left_scroll_area)
 
             with ui.element("div"):
                 self.show_heading("Grand Truth")
-                with ui.scroll_area() as right_scroll_area:
+                with ui.scroll_area(on_scroll=self.sync_scroll_areas) as right_scroll_area:
                     right_scroll_area.tailwind.space_between("y-1").height("full")
                     right_column = ui.element("div")
                     right_column.tailwind.width("max").height("max")
+                    self.scroll_areas.append(right_scroll_area)
 
             for group_id, (line, lines) in enumerate(self.build_log_buffers()):
                 COLORS: list[BackgroundColor] = [
@@ -92,7 +102,7 @@ class DiffLogView(BaseLogView):
 
                 def log_line(txt: str):
                     lbl = ui.label(f"{txt}")
-                    lbl.tailwind.font_family("mono").background_color(COLORS[group_id % 2])
+                    lbl.tailwind.font_family("mono").background_color(COLORS[group_id % 2]).width("full")
                     return lbl
 
                 with left_column:
@@ -123,4 +133,10 @@ class DiffLogView(BaseLogView):
 
         for line in right_lines:
             line.tailwind.font_weight("bold")
+
+    async def update(self, _: object = None):
+        for scroll_area in self.scroll_areas:
+            off: float = (await scroll_area.run_method("getScrollPosition"))["top"]
+            if not are_the_same(off, self.scroll_offset):
+                scroll_area.scroll_to(pixels=self.scroll_offset)
 
