@@ -165,8 +165,19 @@ class DrainSetup(ParserSetup):
                 on_click=self.automatically_find_masking_instructions,
             )
 
+        self.container = outer
         return outer
 
+    def clear(self, parser_setup_div):
+        try:
+            with parser_setup_div:
+                self.container.clear()
+                self.container.delete()
+                del self.container
+        except AttributeError:
+            # There is no `container` yet defined
+            pass
+    
     async def update(self, sender: object = None):
         self.masking_instructions_amount = max(0, self.masking_instructions_amount)
         self.drain_depth_label.text = LABEL_TEXT_1.format(self.drain_depth)

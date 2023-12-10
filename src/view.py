@@ -69,7 +69,9 @@ def start(fastapi_app: FastAPI):
 
         await state.file_select.show()
         await state.parser_select.show()
-        await state.parser_setup.show()
+        parser_setup_div = ui.element("div")
+        with parser_setup_div:
+            await state.parser_setup.show()
         await state.heuristic_setup.show()
         await state.log_view.show()
         await state.footer.show()

@@ -127,7 +127,8 @@ class SmartLogView(View):
                     "base"
                 ).font_family("mono").whitespace("pre-line")
 
-    async def show(self):
+    async def show(self, parser_setup_div):
+        self.parser_setup_div = parser_setup_div
         self.parent = ui.element("div")
         self.heuristic_setup.on_state_changed(self.update)
         self.select_files.on_state_changed(self.update)
@@ -141,8 +142,10 @@ class SmartLogView(View):
             self._parser_needs_calculation = True
 
         if isinstance(sender, (SelectParser)):
-            self.parser_setup.hide()
+            self.parser_setup.clear(self.parser_setup_div)
             self.parser_setup = get_parser_setup(self.select_parser, self.select_files)
+            with self.parser_setup_div:
+                self.parser_setup.show()
 
         try:
             self.parent.clear()
