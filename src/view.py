@@ -68,9 +68,12 @@ def index():
 
     state.file_select.show()
     state.parser_select.show()
-    state.parser_setup.show()
+    parser_setup_div = ui.element("div")
+    with parser_setup_div:
+        state.parser_setup.show()
+    # state.parser_setup.clear()
     state.heuristic_setup.show()
-    state.log_view.show()
+    state.log_view.show(parser_setup_div)
     state.footer.show()
 
     logger.info("Succesfully initialized")

@@ -122,9 +122,19 @@ class BrainSetup(ParserSetup):
                 ui.button("Load", on_click=dialog.open)
                 ui.button("Save", on_click=lambda: self.save_config())
 
-
+        self.container = outer
         return outer
 
+    def clear(self, parser_setup_div):
+        try:
+            with parser_setup_div:
+                self.container.clear()
+                self.container.delete()
+                del self.container
+        except AttributeError:
+            # There is no `container` yet defined
+            pass
+    
     def update(self, sender: object = None):
         self.brain_similarity_label.text = LABEL_TEXT_2.format(self.brain_sim_th)
         self.brain_similarity_slider.value = self.brain_sim_th
