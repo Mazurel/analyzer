@@ -60,8 +60,11 @@ class BrainSetup(ParserSetup):
     """
     select_files: SelectFiles
 
+    dataset_name = ""
+    space_chars = ""
     brain_sim_th: float = 0.4
     log_format: str = "<Content>"
+    delimeters: str = ""
     regex_amount: int = 0
     regex_list: list[RegexSelection] = field(
         default_factory=lambda: []
@@ -69,6 +72,40 @@ class BrainSetup(ParserSetup):
 
     def show(self):
         with settings_frame() as outer:
+            continents = [
+                'HealthApp',
+                'Android',
+                'HPC',
+                'BGL',
+                'Hadoop',
+                'HDFS',
+                'Linux',
+                'Spark',
+                'Thunderbird',
+                'Windows',
+                'Zookeeper',
+                'Other'
+            ]
+
+            def on_select(sender):
+                if sender.value == "Other":
+                    self.space_chars_input.enable()
+                    self.space_chars_input.set_visibility(True)
+                else:
+                    self.space_chars_input.disable()
+                    self.space_chars_input.set_visibility(False)
+
+                self.update(sender)
+
+            self.dataset_select = ui.select(options=continents, with_input=True, label="Select dataset",
+                    on_change=on_select).classes('w-40').bind_value_to(self, "dataset_name")
+            
+            self.space_chars_input = ui.input(
+                label="Space after: ",
+                value=self.space_chars,
+                on_change=lambda: self.state_changed.send(self),
+            ).bind_value_to(self, "space_chars")
+            
             with ui.grid(columns=2):
                 self.brain_similarity_label = ui.label(LABEL_TEXT_2.format(self.brain_sim_th))
                 self.brain_similarity_slider = ui.slider(
@@ -90,12 +127,19 @@ class BrainSetup(ParserSetup):
                     on_change=lambda: self.state_changed.send(self),
                 ).bind_value_to(self, "log_format")
 
+            self.delimeter_input = ui.input(
+                    label="delimeters",
+                    value=self.delimeters,
+                    on_change=lambda: self.state_changed.send(self),
+                ).bind_value_to(self, "delimeters")
+            
             self.regex_container = ui.element("div")
             self.regex_n = ui.number(
                 "Regex",
                 value=self.regex_amount,
                 on_change=self.update,
             ).bind_value_to(self, "regex_amount")
+
 
             with ui.row() as el:
                 el.tailwind.margin("mt-2")
@@ -136,9 +180,12 @@ class BrainSetup(ParserSetup):
             pass
     
     def update(self, sender: object = None):
+        self.dataset_select.value = self.dataset_name
+        self.space_chars_input.value = self.space_chars
         self.brain_similarity_label.text = LABEL_TEXT_2.format(self.brain_sim_th)
         self.brain_similarity_slider.value = self.brain_sim_th
         self.log_fomrat_input.value = self.log_format
+        self.delimeter_input.value = self.delimeters
         self.regex_amount = max(0, self.regex_amount)
         self.regex_n.value = self.regex_amount
 
@@ -157,8 +204,10 @@ class BrainSetup(ParserSetup):
 
     def build_parser_config(self) -> BrainConfig:
         config = BrainConfig()
+        config.dataset = self.dataset_name
         config.brain_sim_th = self.brain_sim_th
         config.log_format = self.log_format
+        config.delimeter = list(self.delimeters)
         config.regex_list = [
             regex.regex
             for regex in self.regex_list
