@@ -73,17 +73,17 @@ class BrainSetup(ParserSetup):
     def show(self):
         with settings_frame() as outer:
             continents = [
-                'HealthApp',
-                'Android',
-                'HPC',
-                'BGL',
-                'Hadoop',
-                'HDFS',
-                'Linux',
-                'Spark',
-                'Thunderbird',
-                'Windows',
-                'Zookeeper',
+                'HealthApp :=|',
+                'Android ():=',
+                'HPC =-:',
+                'BGL =()..',
+                'Hadoop _:=()',
+                'HDFS :',
+                'Linux =:',
+                'Spark :',
+                'Thunderbird :=',
+                'Windows :=[]',
+                'Zookeeper :=',
                 'Other'
             ]
 
@@ -92,12 +92,13 @@ class BrainSetup(ParserSetup):
                     self.space_chars_input.enable()
                     self.space_chars_input.set_visibility(True)
                 else:
+                    self.space_chars_input.value = ''
                     self.space_chars_input.disable()
                     self.space_chars_input.set_visibility(False)
 
-                self.update(sender)
+                self.state_changed.send(self)
 
-            self.dataset_select = ui.select(options=continents, with_input=True, label="Select dataset",
+            self.dataset_select = ui.select(options=continents, with_input=True, label="Space character packet",
                     on_change=on_select).classes('w-40').bind_value_to(self, "dataset_name")
             
             self.space_chars_input = ui.input(
@@ -105,6 +106,8 @@ class BrainSetup(ParserSetup):
                 value=self.space_chars,
                 on_change=lambda: self.state_changed.send(self),
             ).bind_value_to(self, "space_chars")
+            self.space_chars_input.disable()
+            self.space_chars_input.set_visibility(False)
             
             with ui.grid(columns=2):
                 self.brain_similarity_label = ui.label(LABEL_TEXT_2.format(self.brain_sim_th))
@@ -213,6 +216,8 @@ class BrainSetup(ParserSetup):
             for regex in self.regex_list
             if regex.ready
         ]
+        config.space_chars = list(self.space_chars)
+
         return config
 
     def build_parser(self) -> BrainManager:
