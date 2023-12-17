@@ -15,7 +15,7 @@ class SelectParser(View):
     parsers = ["Brain", "Drain"]
     parser_cap: str = parsers[0]
 
-    def show(self):
+    async def show(self):
         with ui.row() as r:
             self.label = ui.label()
             self.label.text = f"Select Parser: "
@@ -26,7 +26,7 @@ class SelectParser(View):
                 )
                 .on(
                     "update:model-value",
-                    lambda: self.state_changed.send(self),
+                    self._emit_state_change,
                     throttle=1.0,
                     leading_events=False,
                 )

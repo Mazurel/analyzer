@@ -33,7 +33,7 @@ class RegexSelection(View):
             el.tailwind.width("full")
             self.l2 = ui.input(
                 label="regex",
-                on_change=lambda: self.state_changed.send(self),
+                on_change=self._emit_state_change,
             ).bind_value_to(self, "regex")
 
         self.container = el
@@ -70,7 +70,7 @@ class BrainSetup(ParserSetup):
         default_factory=lambda: []
     )
 
-    def show(self):
+    async def show(self):
         with settings_frame() as outer:
             continents = [
                 'HealthApp :=|',
@@ -87,7 +87,7 @@ class BrainSetup(ParserSetup):
                 'Other'
             ]
 
-            def on_select(sender):
+            async def on_select(sender):
                 if sender.value == "Other":
                     self.space_chars_input.enable()
                     self.space_chars_input.set_visibility(True)
@@ -96,15 +96,15 @@ class BrainSetup(ParserSetup):
                     self.space_chars_input.disable()
                     self.space_chars_input.set_visibility(False)
 
-                self.state_changed.send(self)
+                await self._emit_state_change()
 
             self.dataset_select = ui.select(options=continents, with_input=True, label="Space character packet",
-                    on_change=on_select).classes('w-40').bind_value_to(self, "dataset_name")
+                    on_change=on_select).bind_value_to(self, "dataset_name")
             
             self.space_chars_input = ui.input(
                 label="Space after: ",
                 value=self.space_chars,
-                on_change=lambda: self.state_changed.send(self),
+                on_change=self._emit_state_change,
             ).bind_value_to(self, "space_chars")
             self.space_chars_input.disable()
             self.space_chars_input.set_visibility(False)
@@ -118,7 +118,7 @@ class BrainSetup(ParserSetup):
                     value=self.brain_sim_th,
                 ).on(
                     "update:model-value",
-                    lambda: self.state_changed.send(self),
+                    self._emit_state_change,
                     throttle=1.0,
                     leading_events=False,
                 ).bind_value_to(self, "brain_sim_th")
@@ -127,13 +127,13 @@ class BrainSetup(ParserSetup):
                 self.log_fomrat_input = ui.input(
                     label="log_format",
                     value=self.log_format,
-                    on_change=lambda: self.state_changed.send(self),
+                    on_change=self._emit_state_change,
                 ).bind_value_to(self, "log_format")
 
             self.delimeter_input = ui.input(
                     label="delimeters",
                     value=self.delimeters,
-                    on_change=lambda: self.state_changed.send(self),
+                    on_change=self._emit_state_change,
                 ).bind_value_to(self, "delimeters")
             
             self.regex_container = ui.element("div")
@@ -182,7 +182,7 @@ class BrainSetup(ParserSetup):
             # There is no `container` yet defined
             pass
     
-    def update(self, sender: object = None):
+    async def update(self, sender: object = None):
         self.dataset_select.value = self.dataset_name
         self.space_chars_input.value = self.space_chars
         self.brain_similarity_label.text = LABEL_TEXT_2.format(self.brain_sim_th)
@@ -200,9 +200,7 @@ class BrainSetup(ParserSetup):
             while self.regex_amount > len(self.regex_list):
                 regex = RegexSelection()
                 regex.show()
-                regex.state_changed.connect(
-                    lambda _: self.state_changed.send(self), weak=False
-                )
+                regex.state_changed.on_state_changed(self._emit_state_change_anyargs)
                 self.regex_list.append(regex)
 
     def build_parser_config(self) -> BrainConfig:
@@ -232,10 +230,10 @@ class BrainSetup(ParserSetup):
 
         ui.download(config_path)
 
-    def load_config(self, config: str):
+    async def load_config(self, config: str):
         schema = BrainSettingsSchema()
         obj = toml.loads(config)
         parsed_config: dict[str, Any] = schema.load(obj)
         self.brain_sim_th = parsed_config.get("brain_sim_th")
 
-        self.state_changed.send(self)
+        await self._emit_state_change()

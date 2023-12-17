@@ -44,7 +44,7 @@ class SelectFiles(View):
         file.set_name(self.grand_truth_name)
         with open(os.path.join(LOG_WORKDIR, self.grand_truth_name), "w") as log_file:
             log_file.write(buffer.getvalue())
-        await self._emit_state_changed()
+        await self._emit_state_change()
 
     async def _handle_checked(self, file: LogFile, buffer: StringIO):
         self.checked = file
@@ -54,7 +54,7 @@ class SelectFiles(View):
         file.set_name(self.checked_name)
         with open(os.path.join(LOG_WORKDIR, self.checked_name), "w") as log_file:
             log_file.write(buffer.getvalue())
-        await self._emit_state_changed()
+        await self._emit_state_change()
 
     async def show(self):
         with ui.row() as r:

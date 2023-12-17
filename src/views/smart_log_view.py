@@ -133,7 +133,7 @@ class SmartLogView(View):
         self.heuristic_setup.on_state_changed(self.update)
         self.select_files.on_state_changed(self.update)
         self.parser_setup.on_state_changed(self.update)
-        self.select_parser.on_state_changed.connect(self.update)
+        self.select_parser.on_state_changed(self.update)
         with self.parent:
             await self.update_log_visualization()
 
@@ -145,7 +145,7 @@ class SmartLogView(View):
             self.parser_setup.clear(self.parser_setup_div)
             self.parser_setup = get_parser_setup(self.select_parser, self.select_files)
             with self.parser_setup_div:
-                self.parser_setup.show()
+                await self.parser_setup.show()
 
         try:
             self.parent.clear()

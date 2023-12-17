@@ -73,7 +73,7 @@ def start(fastapi_app: FastAPI):
         with parser_setup_div:
             await state.parser_setup.show()
         await state.heuristic_setup.show()
-        await state.log_view.show()
+        await state.log_view.show(parser_setup_div)
         await state.footer.show()
         logger.info("Succesfully initialized")
 
