@@ -36,6 +36,7 @@ class LogParser:
         threshold=2,
         delimeter=[],
         rex=[],
+        space_chars=[]
     ):
         self.logformat = log_format
         self.path = indir
@@ -45,6 +46,7 @@ class LogParser:
         self.logname = logname
         self.threshold = threshold
         self.delimeter = delimeter
+        self.space_chars = space_chars
 
     def parse(self, logName):
         print("Parsing file: " + os.path.join(self.path, logName))
@@ -56,7 +58,7 @@ class LogParser:
         sentences = self.df_log["Content"].tolist()
 
         group_len, tuple_vector, frequency_vector = self.get_frequecy_vector(
-            sentences, self.rex, self.delimeter, self.logname
+            sentences, self.rex, self.delimeter, self.logname, self.space_chars
         )
 
         (
@@ -193,7 +195,7 @@ class LogParser:
                 word_combinations_reverse.setdefault(key, []).append(sorted_fre)
         return sorted_tuple_vector, word_combinations, word_combinations_reverse
 
-    def get_frequecy_vector(self, sentences, filter, delimiter, dataset):
+    def get_frequecy_vector(self, sentences, filter, delimiter, dataset, space_chars):
         """
         Counting each word's frequency in the dataset and convert each log into frequency vector
         Output:
@@ -210,6 +212,11 @@ class LogParser:
                 s = re.sub(rgex, "<*>", s)
             for de in delimiter:
                 s = re.sub(de, "", s)
+            for space_char in space_chars:
+                if space_char in "^${}[]().*+?|<>-&":
+                    s = re.sub("\\" + space_char, space_char + " ", s)
+                else:
+                    s = re.sub(space_char, space_char + " ", s)
             if dataset == "HealthApp":
                 s = re.sub(":", ": ", s)
                 s = re.sub("=", "= ", s)

@@ -15,6 +15,7 @@ class BrainConfig():
         self.regex_list = []
         self.log_format = ""
         self.delimeter = []
+        self.space_chars = []
 
 
 class BrainManager(ParserManager):
@@ -23,7 +24,7 @@ class BrainManager(ParserManager):
         self.config = config
 
     def learn(self, file: LogFile):
-        self.log_parser = BrainParser(logname=self.config.dataset, log_format=self.config.log_format, indir=LOG_WORKDIR, outdir=LOG_WORKDIR, delimeter=self.config.delimeter, threshold=self.config.brain_sim_th, rex=self.config.regex_list)
+        self.log_parser = BrainParser(logname=self.config.dataset, log_format=self.config.log_format, indir=LOG_WORKDIR, outdir=LOG_WORKDIR, delimeter=self.config.delimeter, threshold=self.config.brain_sim_th, rex=self.config.regex_list, space_chars=self.config.space_chars)
         self.log_parser.parse(file.file_name)
 
     def annotate(self, file: LogFile):
