@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+
+    <style>
+    .accent {
+        color: #449933 !important;
+     }
+    </style>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+        <section>
+            <h3 class="accent">
+                Discovery and visualization of meaningful information in applications logs
+            </h3>
+            <p>
+                Mateusz Mazur, Michał Gąsecki, Aleksander Strzelecki
+            </p>
+        ​</section>
+        <section>
+            <section data-auto-animate>
+                <h3>
+                    Quickly: What are <span class="accent">logs</span> ?
+                </h3>
+            </section>
+            <section data-auto-animate>
+                <h3>
+                    Quickly: What are <span class="accent">logs</span> ?
+                </h3>
+                <p>Modern applications are:</p>
+                <ul>
+                    <li class="fragment">Complicated</li>
+                    <li class="fragment">Distributed</li>
+                    <li class="fragment">Parallel</li>
+                </ul>
+            </section>
+            <section data-auto-animate>
+                <h3>
+                    Quickly: What are <span class="accent">logs</span> ?
+                </h3>
+                <p>Each application produces text files, line by line, that represent current state of a program.</p>
+                <p class="fragment">These lines are usually corresponding to one line inside source code.</p>
+                <p class="fragment">Based of them, among the others, we can reason about the program !</p>
+            </section>
+            <section data-auto-animate>
+                <h3>
+                    Quickly: What are <span class="accent">logs</span> ?
+                </h3>
+                <p>For example, a line can clook like this:</p>
+                <pre data-id="log-sample">
+                    <code data-trim class="language-text">
+                        17.12.2023 14:13 : INFO : Started special service
+                    </code>
+                </pre>
+                <p class="fragment">Lines usually contain timestamp, additional metadata and line content</p>
+                <p class="fragment">The biggest issue - there is <span class="accent">no common format</span></p>
+            </section>
+            <section data-auto-animate>
+                <h3>
+                    Quickly: What are <span class="accent">logs</span> ?
+                </h3>
+                <pre data-id="log-sample">
+                    <code data-trim class="language-text">
+                        17.12.2023 14:13 : INFO : Started special service
+                        17.12.2023 14:13.1234 : INFO : Started special service
+                        [17.12.2023 14:13.1234] - INFO - Started special service
+                        14:13.1234 12.17.2023 INFO Started special service
+                        [14:13.1234 12.17.2023][thread 1][info] Started special service
+                    </code>
+                </pre>
+                <p>"The same" log line can differ a lot</p>
+            </section>
+        ​</section>
+        <section>
+            <h3>
+                What is interesting about application <span class="accent">logs</span> ?
+            </h3>
+        ​</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>
