@@ -25,7 +25,7 @@ class MultiLogView(BaseLogView):
             e.tailwind.gap("x-4")
 
             with ui.element("div"):
-                ui.label("Checked").tailwind.font_size("3xl").text_align(
+                ui.label("Analyzed").tailwind.font_size("3xl").text_align(
                     "center"
                 ).height("fit")
                 with ui.scroll_area() as scroll_area:
@@ -38,7 +38,7 @@ class MultiLogView(BaseLogView):
                             self.lines_left.append((line, lbl))
 
             with ui.element("div"):
-                ui.label("Grand Truth").tailwind.font_size("3xl").text_align(
+                ui.label("Baseline").tailwind.font_size("3xl").text_align(
                     "center"
                 ).height("fit")
                 with ui.scroll_area() as scroll_area:
@@ -76,6 +76,8 @@ class MultiLogView(BaseLogView):
                     meta.connected_line.line_number - 1
                 ]
         except ValueError:
+            pass
+        except TypeError:
             pass
 
         if right_line_element is None:

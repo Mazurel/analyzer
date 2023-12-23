@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Generator
 import logging
 import math
 
@@ -8,8 +7,8 @@ from nicegui.elements.scroll_area import ScrollArea
 from src.logs.types import LogLine
 from src.heuristics.histogram_time import TimeHeuristicMetadata
 from src.views.log_views.base import BaseLogView
-from src.heuristics.manager import query_heuristic_name
 from src.heuristics.histogram_time import TimeHeuristic
+from src.heuristics.filler import FillerHeuristic, FillerMetadata
 
 from nicegui import ui
 from nicegui.element import Element
@@ -35,7 +34,6 @@ class DiffLogView(BaseLogView):
     scroll_offset: float = 0.0
 
     def build_log_buffers(self) -> list[tuple[LogLine, list[LogLine]]]:
-        used_line_numbers: set[int] = set()
         result: list[tuple[LogLine, list[LogLine]]] = []
 
         for line in self.left_log_file.lines:
@@ -43,17 +41,25 @@ class DiffLogView(BaseLogView):
             result.append((line, arr))
             try:
                 meta = line.get_heuristic_metadata(
-                    query_heuristic_name(TimeHeuristic), TimeHeuristicMetadata
+                    TimeHeuristic().get_heuristic_name(), TimeHeuristicMetadata
                 )
                 if meta.connected_line is not None:
-                    used_line_numbers.add(meta.connected_line.line_number)
                     arr.append(meta.connected_line)
+            except TypeError:
+                pass
             except ValueError:
                 pass
 
-        for line_left in filter(lambda l: l.line_number not in used_line_numbers, self.right_log_file.lines):
-            l = self.left_log_file.find_closest_line_by_relative_timestamp(line_left.timestamp.get_relative_numeric_value(self.right_log_file.starting_time))
-            result[l.line_number - 1][1].append(line_left)
+            try:
+                meta = line.get_heuristic_metadata(
+                    FillerHeuristic().get_heuristic_name(), FillerMetadata
+                )
+                for c_line in meta.connected_lines:
+                    arr.append(c_line)
+            except TypeError:
+                pass
+            except ValueError:
+                pass
 
         for _, line_list in result:
             line_list.sort(key=lambda l: l.line_number)
@@ -79,7 +85,7 @@ class DiffLogView(BaseLogView):
             e.tailwind.gap("x-4")
 
             with ui.element("div"):
-                self.show_heading("Checked")
+                self.show_heading("Analyzed")
                 with ui.scroll_area(on_scroll=self.sync_scroll_areas) as left_scroll_area:
                     left_scroll_area.tailwind.space_between("y-1").height("full")
                     left_column = ui.element("div")
@@ -87,7 +93,7 @@ class DiffLogView(BaseLogView):
                     self.scroll_areas.append(left_scroll_area)
 
             with ui.element("div"):
-                self.show_heading("Grand Truth")
+                self.show_heading("Baseline")
                 with ui.scroll_area(on_scroll=self.sync_scroll_areas) as right_scroll_area:
                     right_scroll_area.tailwind.space_between("y-1").height("full")
                     right_column = ui.element("div")

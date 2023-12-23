@@ -130,5 +130,5 @@ def test_time_lookup():
         f1.find_closest_line_by_relative_timestamp(
             f2.lines[1].timestamp.get_relative_numeric_value(f2.starting_time)
         )
-        is f1.lines[2]
+        is f1.lines[1]
     )

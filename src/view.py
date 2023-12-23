@@ -59,11 +59,12 @@ def start(fastapi_app: FastAPI):
         ui.query(".nicegui-content").tailwind.align_items("center")
 
         ui.markdown("# Log analyzer")
-        ui.markdown("Upload Grand truth and checked file to see analysis result")
+        ui.markdown("Upload baseline and analyzed file to see analysis result")
 
         await state.file_select.show()
         await state.drain_setup.show()
         await state.heuristic_setup.show()
+        ui.markdown("### Findings in analyzed logs")
         await state.log_view.show()
         await state.footer.show()
         logger.info("Succesfully initialized")

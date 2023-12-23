@@ -32,6 +32,8 @@ class SmartLogView(View):
             "inner"
         ).background_color("zinc-300").min_height("max")
 
+        ui.label("## Findings ")
+
         if self.select_files.state == SelectFiles.State.FILES_NOT_UPLOADED:
             await self._show_logs_not_loaded(
                 "Please upload both files to see something here"
@@ -96,6 +98,7 @@ class SmartLogView(View):
 
         await self._show_logs_not_loaded("Building logs ...")
         self.parent.clear()
+
         for i, line in enumerate(self.select_files.checked.lines):
             val = 0
             for heuristic in line.list_heuristics():

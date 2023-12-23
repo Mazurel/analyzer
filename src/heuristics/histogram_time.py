@@ -13,6 +13,7 @@ from scipy import optimize
 log = logging.getLogger("TimeHeuristic")
 NUMERICAL_STABILITY_CONSTANT = 1e-4
 DT_PERC = 0.9
+BIG_NUMBER = 1e9
 
 
 @dataclass
@@ -21,6 +22,9 @@ class TimeHeuristicMetadata:
 
 
 class TimeHeuristic(Heuristic):
+    def get_heuristic_name(self) -> str:
+        return "Time Histogram"
+
     def load_grand_truth(self, grand_truth: LogFile):
         self.grand_truth_template_per_line: Dict[int, List[LogLine]] = {}
         self.grand_truth_starting_time: Optional[float] = None
@@ -67,10 +71,11 @@ class TimeHeuristic(Heuristic):
 
         return res
 
-    def calculate_heuristic(self, heuristic_name: str, checked: LogFile):
+    def calculate_heuristic(self, checked: LogFile):
         if self.grand_truth_starting_time is None:
             return
 
+        heuristic_name = self.get_heuristic_name()
         try:
             self.checked_starting_time = checked.lines[0].timestamp.get_numeric_value()
             self.checked_ending_time = checked.lines[-1].timestamp.get_numeric_value()
@@ -97,27 +102,39 @@ class TimeHeuristic(Heuristic):
                 elif m == 0:
                     for l in checked_lines:
                         l.add_heuristic(heuristic_name, log_dispropotion)
+                    continue
 
                 s = max(n, m)
-                dts = np.zeros((s, s))
+                dts = np.ones((s, s)) * BIG_NUMBER
                 for i in range(n):
                     for j in range(m):
                         dt = self.calculate_dt(checked_lines[i], truth_lines[j])
-                        dts[i, j] = dt
+                        dts[i, j] = dt / (
+                            DT_PERC * self.max_dt + NUMERICAL_STABILITY_CONSTANT
+                        )
 
-                alg_input = dts / (DT_PERC * self.max_dt + NUMERICAL_STABILITY_CONSTANT)
+                alg_input = dts
                 res: Tuple[
                     npt.NDArray[np.int_], npt.NDArray[np.int_]
                 ] = optimize.linear_sum_assignment(alg_input)
 
                 for x in range(res[0].shape[0]):
-                    j: int = res[0][x]
-                    i: int = res[1][x]
+                    i: int = res[0][x]
+                    j: int = res[1][x]
                     if i >= n:
                         pass
                     elif j >= m:
+                        nearest_line = (
+                            self.grand_truth.find_closest_line_by_relative_timestamp(
+                                checked_lines[i].timestamp.get_relative_numeric_value(
+                                    checked.starting_time
+                                )
+                            )
+                        )
                         checked_lines[i].add_heuristic(
-                            heuristic_name, log_dispropotion, TimeHeuristicMetadata()
+                            heuristic_name,
+                            log_dispropotion,
+                            TimeHeuristicMetadata(nearest_line),
                         )
                     else:
                         checked_lines[i].add_heuristic(

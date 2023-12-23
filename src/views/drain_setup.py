@@ -128,7 +128,7 @@ class DrainSetup(View):
 
             self.masking_instructions_container = ui.element("div")
             self.masking_n = ui.number(
-                "Masking instructions",
+                "Known Patterns",
                 value=self.masking_instructions_amount,
                 on_change=self.update,
             ).bind_value_to(self, "masking_instructions_amount")
@@ -160,7 +160,7 @@ class DrainSetup(View):
                 ui.button("Save", on_click=lambda: self.save_config())
 
             ui.button(
-                "Automatically find masking instructions",
+                "Find known patterns",
                 on_click=self.automatically_find_masking_instructions,
             )
 

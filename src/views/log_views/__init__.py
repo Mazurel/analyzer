@@ -13,8 +13,7 @@ from nicegui import ui
 from nicegui.element import Element
 
 ALL_LOG_VIEWS: dict[str, type[BaseLogView]] = {
-    "Basic log view": LogView,
-    "Dual log view": MultiLogView,
+    "Basic log view": MultiLogView,
     "Diff log view": DiffLogView,
 }
 

@@ -40,4 +40,4 @@ class HeuristicSetup(View):
 
     async def update(self, sender: object = None):
         assert self.label is not None
-        self.label.text = f"Heuristic Cap ({self.heuristic_cap}): "
+        self.label.text = f"Importance threshold ({self.heuristic_cap}): "
