@@ -251,14 +251,19 @@ class LogFile:
             covered_id.add(line.template.id)
 
     def find_closest_line_by_relative_timestamp(self, time: float) -> LogLine:
-        index = bisect.bisect(
-            self.lines,
-            time,
-            key=lambda line: line.timestamp.get_relative_numeric_value(
-                self.starting_time
-            ),
+        index = (
+            bisect.bisect(
+                self.lines,
+                time,
+                key=lambda line: line.timestamp.get_relative_numeric_value(
+                    self.starting_time
+                ),
+            )
+            - 1
         )
-        return self.lines[min(index, len(self.lines) - 1)]
+        index = min(index, len(self.lines) - 1)
+        index = max(index, 0)
+        return self.lines[index]
 
 
 class MaskingInstruction(NamedTuple):

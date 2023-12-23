@@ -25,5 +25,8 @@ class Heuristic(Protocol):
     def load_grand_truth(self, grand_truth: LogFile):
         ...
 
-    def calculate_heuristic(self, heuristic_name: str, checked: LogFile):
+    def calculate_heuristic(self, checked: LogFile):
+        ...
+
+    def get_heuristic_name(self) -> str:
         ...

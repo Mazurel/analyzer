@@ -7,6 +7,9 @@ MAGIC_CONSTANT = 0.001
 
 
 class HistogramHeuristic(Heuristic):
+    def get_heuristic_name(self) -> str:
+        return "Histogram"
+
     def load_grand_truth(self, grand_truth: LogFile):
         self.grand_truth_templates_count: Dict[int, int] = {}
 
@@ -16,7 +19,9 @@ class HistogramHeuristic(Heuristic):
                 self.grand_truth_templates_count.get(t.id, 0) + 1
             )
 
-    def calculate_heuristic(self, heuristic_name: str, checked: LogFile):
+    def calculate_heuristic(self, checked: LogFile):
+        heuristic_name = self.get_heuristic_name()
+
         templates_count: Dict[int, int] = {}
         for line in checked.lines:
             t = line.template

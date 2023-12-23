@@ -40,8 +40,8 @@ class SelectFiles(View):
 
     async def show(self):
         with ui.row() as r:
-            LogFileUpload("Upload Grand Truth file", on_upload=self._handle_grand_truth)
-            LogFileUpload("Upload Checked file", on_upload=self._handle_checked)
+            LogFileUpload("Upload Baseline file", on_upload=self._handle_grand_truth)
+            LogFileUpload("Upload Analyzed file", on_upload=self._handle_checked)
         return r
 
     async def update(self, sender: object = None):

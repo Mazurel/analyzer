@@ -16,16 +16,21 @@ KEYWORDS = {
 
 
 class SimpleHeuristic(Heuristic):
+    def get_heuristic_name(self) -> str:
+        return "Simple"
+
     def load_grand_truth(self, grand_truth: LogFile):
         self.grand_truth = grand_truth
 
     def grand_truth_contains(self, keyword: str) -> bool:
         return any(keyword in line.line.lower() for line in self.grand_truth.lines)
 
-    def calculate_heuristic(self, heuristic_name: str, checked: LogFile):
+    def calculate_heuristic(self, checked: LogFile):
         if self.grand_truth is None:
             logger.warning("No grand truth file !")
             return
+
+        heuristic_name = self.get_heuristic_name()
 
         for keyword, heuristic in KEYWORDS.items():
             if self.grand_truth_contains(keyword):

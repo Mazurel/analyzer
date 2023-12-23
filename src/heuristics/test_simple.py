@@ -27,8 +27,8 @@ def test_simple_heuristic():
 
     h = SimpleHeuristic()
     h.load_grand_truth(mocked_grand_truth)
-    h.calculate_heuristic("test", mocked_checked)
+    h.calculate_heuristic(mocked_checked)
 
     assert len(mocked_checked.lines) == 3
-    assert not mocked_checked.lines[0].has_heuristic("test")
-    assert mocked_checked.lines[1].has_heuristic("test")
+    assert not mocked_checked.lines[0].has_heuristic(h.get_heuristic_name())
+    assert mocked_checked.lines[1].has_heuristic(h.get_heuristic_name())
