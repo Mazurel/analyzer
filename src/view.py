@@ -58,7 +58,7 @@ def start(fastapi_app: FastAPI):
         ui.query("body").tailwind.background_color("zinc-200")
         ui.query(".nicegui-content").tailwind.align_items("center")
 
-        ui.markdown("# Log analyzer")
+        ui.markdown("# Log analyser")
         ui.markdown("Upload baseline and analyzed file to see analysis result")
 
         await state.file_select.show()

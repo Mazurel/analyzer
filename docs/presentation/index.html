@@ -165,46 +165,98 @@
                     Our main keywords were:
                 </p>
                 <ul>
-                    <li>TBD</li>
+                    <li>Application logs</li>
+                    <li>Anomaly detection</li>
+                    <li>Pattern recognition</li>
                 </ul>
                 <p>
                     and we looked through the following databases:
                 </p>
                 <ul>
-                    <li>TBD</li>
+                    <li>Springer</li>
+                    <li>IEEE</li>
+                    <li>Scopus</li>
                 </ul>
+            </section>
+            <section data-auto-animate>
+                <h3>1. Literature overview (SLR)</h3>
+                <image src="imgs/slr.png"></image>
             </section>
         </section>
         <section>
-            <section>
+            <section data-auto-animate>
                 <h3>2. Experiment with existing tools</h3>
                 <p>
                     After literature overview, we started experimenting with various, already existing, tools.
                 </p>
+                <p>
+                    We focused mostly on
+                    <ul>
+                        <li>Log parsers</li>
+                        <li>'Diff' tools</li>
+                        <li>Automatic anomaly detectors</li>
+                    </ul>
+                </p>
+            </section>
+            <section data-auto-animate>
+                <h3>2. Experiment with existing tools</h3>
+                <h4>Log parsing</h4>
+                <image src="imgs/logparsing.jpg"></image>
+                <p>Sample from <a href="https://github.com/logpai/logparser">LogPai</a></p>
+            </section>
+        </section>
+        <section>
+            <section data-auto-animate>
+                <h3>3. Implementation (our solution)</h3>
+                <image src="imgs/view1.png"></image>
+                <a href="https://github.com/Mazurel/analyzer">github.com/Mazurel/analyzer</a>
+            </section>
+            <section data-auto-animate>
+                <h3>3. Implementation (our solution)</h3>
+                <h4>How we interpret <span class="accent">log</span> lines</h4>
+                <p>
+                    Each line of log file goes through the following pipeline:
+                    <ol>
+                        <li>Timestamp extraction</li>
+                        <li>Log parsing</li>
+                        <li>Log line matching & heuristics</li>
+                    </ol>
+                </p>
+            </section>
+            <section data-auto-animate>
+                <h3>3. Implementation (our solution)</h3>
+                <h4>How we match <span class="accent">log</span> lines</h4>
+                <image src="imgs/log2graph_export.png" style="max-height: 420px"></image>
             </section>
         </section>
         <section>
             <section>
-                <h3>Implementation (our solution)</h3>
-                <image src="imgs/view1.png"></image>
+                <h3>4. Experiments</h3>
+                <p>We have performed manual experiments on our application</p>
+                <p class="fragment">For purposes of this presenatation, we will show you a <span class="accent">quick demo</span></p>
             </section>
+        </section>
+        <section>
+            <h2>Thank you for listening</h2>
         </section>
 			</div>
 		</div>
 
 		<script src="dist/reveal.js"></script>
 		<script src="plugin/notes/notes.js"></script>
-		<script src="plugin/markdown/markdown.js"></script>
 		<script src="plugin/highlight/highlight.js"></script>
+		<script src="plugin/zoom/zoom.js"></script>
 		<script>
-			// More info about initialization & config:
-			// - https://revealjs.com/initialization/
-			// - https://revealjs.com/config/
-			Reveal.initialize({
-				hash: true,
+		 // More info about initialization & config:
+		 // - https://revealjs.com/initialization/
+		 // - https://revealjs.com/config/
+		 Reveal.initialize({
+				 hash: true,
 
-				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+				 // Learn about plugins: https://revealjs.com/plugins/
+				 plugins: [ RevealHighlight, RevealNotes, RevealZoom ],
+
+        transition: 'fade', // none/fade/slide/convex/concave/zoom
 			});
 		</script>
 	</body>
