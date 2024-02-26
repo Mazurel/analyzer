@@ -27,7 +27,7 @@
                 Discovery and visualization of meaningful information in applications logs
             </h3>
             <p>
-                Mateusz Mazur
+                Mateusz Mazur, Michał Gąsecki, Aleksander Strzelecki
             </p>
         ​</section>
         <section>
@@ -89,8 +89,6 @@
                 <h3>
                     What is interesting about <span class="accent">logs</span> ?
                 </h3>
-                <i><span class="accent">Logs</span> are quite universal mechanism that is present in most of computer programs.</i>
-                <i class="fragment">But, also:</i>
                 <ul>
                 </ul>
             ​</section>
@@ -135,23 +133,21 @@
         </section>
         <section>
             <section>
-                <h3>Proposed Problem</h3>
+                <h3>Our research project</h3>
                 <i>
                     Discovery and visualization of meaningful information in applications logs
                 </i>
                 <p>
-                    My goal is to create a tool that will make finding important log messages <span class="accent">easier</span>.
+                    Our goal was to create a tool that will make finding important log messages <span class="accent">easier</span>.
                 </p>
             </section>
-        </section>
-        <section>
-            <section>
-                <h3>What is already done ?</h3>
-                <h4>As part of research project</h4>
+            <section >
+                <h3>Our plan</h3>
                 <ol>
                     <li>Literature overview (SLR)</li>
-                    <li>Experiments with existing tools</li>
-                    <li>Initial tool implementation</li>
+                    <li>Experiment with existing tools</li>
+                    <li>Tool implementation</li>
+                    <li>Experiments</li>
                 </ol>
             </section>
         </section>
@@ -169,118 +165,46 @@
                     Our main keywords were:
                 </p>
                 <ul>
-                    <li>Application logs</li>
-                    <li>Anomaly detection</li>
-                    <li>Pattern recognition</li>
+                    <li>TBD</li>
                 </ul>
                 <p>
                     and we looked through the following databases:
                 </p>
                 <ul>
-                    <li>Springer</li>
-                    <li>IEEE</li>
-                    <li>Scopus</li>
+                    <li>TBD</li>
                 </ul>
-            </section>
-            <section data-auto-animate>
-                <h3>1. Literature overview (SLR)</h3>
-                <image src="imgs/slr.png"></image>
             </section>
         </section>
         <section>
-            <section data-auto-animate>
-                <h3>2. Experiments with existing tools</h3>
+            <section>
+                <h3>2. Experiment with existing tools</h3>
                 <p>
                     After literature overview, we started experimenting with various, already existing, tools.
                 </p>
-                <p>
-                    We focused mostly on
-                    <ul>
-                        <li>Log parsers</li>
-                        <li>'Diff' tools</li>
-                        <li>Automatic anomaly detectors</li>
-                    </ul>
-                </p>
-            </section>
-            <section data-auto-animate>
-                <h3>2. Experiments with existing tools</h3>
-                <h4>Log parsing</h4>
-                <image src="imgs/logparsing.jpg"></image>
-                <p>Sample from <a href="https://github.com/logpai/logparser">LogPai</a></p>
             </section>
         </section>
         <section>
-            <section data-auto-animate>
-                <h3>3. Implementation (our solution)</h3>
+            <section>
+                <h3>Implementation (our solution)</h3>
                 <image src="imgs/view1.png"></image>
-                <a href="https://github.com/Mazurel/analyzer">github.com/Mazurel/analyzer</a>
             </section>
-            <section data-auto-animate>
-                <h3>3. Implementation (our solution)</h3>
-                <h4>How we interpret <span class="accent">log</span> lines</h4>
-                <p>
-                    Each line of log file goes through the following pipeline:
-                    <ol>
-                        <li>Timestamp extraction</li>
-                        <li>Log parsing</li>
-                        <li>Log line matching & heuristics</li>
-                    </ol>
-                </p>
-            </section>
-            <section data-auto-animate>
-                <h3>3. Implementation (our solution)</h3>
-                <h4>How we match <span class="accent">log</span> lines</h4>
-                <image src="imgs/log2graph_export.png" style="max-height: 420px"></image>
-            </section>
-            <section data-auto-animate>
-                <h3>3. Implementation (our solution)</h3>
-                <h4>How we match <span class="accent">log</span> lines</h4>
-                <p>Using all of that information, we apply various heuristics</p>
-            </section>
-        </section>
-        <section>
-            <section data-auto-animate>
-                <h2>Next steps ?</h2>
-                <p>There are many potential directions for my work</p>
-            </section>
-            <section data-auto-animate>
-                <h2>Next steps ?</h2>
-                <p class="accent">How will other log parsers behave with current heuristics ?</p>
-            </section>
-            <section data-auto-animate>
-                <h2>Next steps ?</h2>
-                <p class="accent">How to fine tune algorithms parameters based on logs ?</p>
-            </section>
-            <section data-auto-animate>
-                <h2>Next steps ?</h2>
-                <p class="accent">Is it possible to make any guarantess about proposed heuristics ?</p>
-            </section>
-            <section data-auto-animate>
-                <h2>Next steps ?</h2>
-                <p class="accent">???</p>
-            </section>
-        </section>
-        <section>
-            <h2>Thank you for listening</h2>
         </section>
 			</div>
 		</div>
 
 		<script src="dist/reveal.js"></script>
 		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
 		<script src="plugin/highlight/highlight.js"></script>
-		<script src="plugin/zoom/zoom.js"></script>
 		<script>
-		 // More info about initialization & config:
-		 // - https://revealjs.com/initialization/
-		 // - https://revealjs.com/config/
-		 Reveal.initialize({
-				 hash: true,
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
 
-				 // Learn about plugins: https://revealjs.com/plugins/
-				 plugins: [ RevealHighlight, RevealNotes, RevealZoom ],
-
-        transition: 'fade', // none/fade/slide/convex/concave/zoom
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
 			});
 		</script>
 	</body>
