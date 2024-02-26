@@ -1,0 +1,59 @@
+\documentclass{pginz}
+
+\usepackage{subcaption}
+\usepackage{indentfirst}
+\usepackage[T1]{fontenc}
+\usepackage{csquotes}
+\usepackage[
+    backend=biber,
+    style=numeric,
+    sorting=ynt
+]{biblatex}
+\usepackage{float}
+\usepackage{framed}
+\usepackage{amsmath}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={Praca Magisterska},
+}
+
+\addbibresource{mag.bib}
+
+\renewcommand{\arraystretch}{1.5}
+
+\renewcommand{\ang}[1]{ang. \textit{#1}}
+\newcommand{\todo}[1]{\textbf{Do zrobienia: } #1}
+\DeclareMathOperator{\Loss}{\mathcal{L}}
+
+\begin{document}
+
+\includepdf[page={1}]{title-pl.pdf}
+% \includepdf[page={1}]{inne/Oswiadczenie.pdf}
+
+\setcounter{page}{3}
+
+\todo{Abstrakt}
+
+\tableofcontents
+\addcontentsline{toc}{chapter}{Spis treści}
+
+\section{Wstęp}
+
+\cite{AdaIN}
+
+\listoffigures
+\addcontentsline{toc}{chapter}{Spis rysunków}
+\listoftables
+\addcontentsline{toc}{chapter}{Spis tabel}
+
+
+\printbibliography[
+    heading=bibintoc,
+    title={Bibliografia}
+]
+
+\end{document}
