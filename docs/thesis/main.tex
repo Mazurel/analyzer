@@ -12,6 +12,7 @@
 \usepackage{float}
 \usepackage{framed}
 \usepackage{amsmath}
+\usepackage{dirtytalk}
 
 \hypersetup{
     colorlinks=true,
@@ -31,9 +32,8 @@
 
 \begin{document}
 
-\includepdf[page={1}]{title-pl.pdf}
-% \includepdf[page={1}]{inne/Oswiadczenie.pdf}
-
+\includepdf[pages={1}]{title-pl.pdf}
+% \includepdf[pages={1}]{inne/Oswiadczenie.pdf}
 \setcounter{page}{3}
 
 \todo{Abstrakt}
@@ -41,9 +41,64 @@
 \tableofcontents
 \addcontentsline{toc}{chapter}{Spis treści}
 
-\section{Wstęp}
+\newpage
 
-\cite{AdaIN}
+\chapter{Wstęp}
+
+Współczesne systemy informatyczne są złożone i często rozproszone pomiędzy różne niezależne komponenty, które działają asynchronicznie.
+Zrozumienie ich zachowań i interakcji w tych systemach staje się dużym wyzwaniem, zwłaszcza podczas diagnozowania problemów.
+Biorąc pod uwagę ograniczenia tradycyjnych narzędzi do rozwiązywania problemów, takich jak GDB, dla tak skomplikowanych środowisk,
+inżynierowie często uciekają się do bardziej dostępnej, a jednak skutecznej techniki:
+przechwytywania i zapisywania śladów aplikacji jako plików tekstowych, wzbogaconych o dodatkowe dane, takie jak znaczniki oznaczające czas.
+Te pliki, powszechnie znane jako \say{logi} lub \say{pliki logów}, służą jako kluczowe zasoby do monitorowania, diagnozowania i rozumienia wewnętrznych mechanizmów współczesnych systemów informatycznych.
+
+Pliki logów zazwyczaj przyjmują formę półstrukturalnych plików tekstowych, gdzie każda nowa linia odpowiada nowemu zdarzeniu aplikacji.
+Takie zdarzenie zazwyczaj również bezpośrednio wskazuje na konkretną lokalizację lub lokalizacje w kodzie źródłowym aplikacji.
+Dodatkowo, każda linia może zawierać dodatkowe informacje, takie jak znacznik czasu, powaga informacji, lokalizacja itp.
+Problem jednak polega na tym, że nie ma ujednoliconego sposobu strukturyzowania
+takich plików, więc w praktyce większość aplikacji ma zupełnie różne struktury plików logów\cite{LogTypes}, m. in. w zależności od:
+
+\begin{itemize}
+  \item Języka programowania
+  \item Bibliotek cyfrowych
+  \item Systemu operacyjnego
+  \item Dostępnych zasobów
+\end{itemize}
+
+Logi stanowią nieocenione źródło danych dla
+większości nowoczesnych aplikacji, oferując głęboki wgląd w działanie aplikacji
+bez generowania znaczących dodatkowych kosztów.
+Ich wszechstronność sprawia, że znajdują zastosowanie w różnych rozwiązaniach
+technologicznych, od zintegrowanych systemów wbudowanych po zaawansowane
+rozproszone serwisy oraz usługi internetowe.
+Ta uniwersalność i bogactwo zawartych informacji sprawiają, że logi są
+przedmiotem intensywnych badań, zwłaszcza w kontekście ekstrakcji istotnych
+danych, które mogą pomóc w usprawnieniu procesów diagnostycznych, monitoringu
+wydajności oraz wykrywaniu potencjalnych problemów.
+
+Analiza logów stanowi kluczowy element utrzymania i diagnozowania współczesnych
+systemów informatycznych. Logi te służą jako cenne źródło informacji dla
+programistów, administratorów systemów i zespołów wsparcia, umożliwiając im
+zyskanie wglądu w zachowanie aplikacji i skuteczne identyfikowanie problemów,
+bez potrzeby ponownego uruchamiania systemu.
+Niestety, pomimo powszechności logów we współczesnym oprogramowaniu, brak
+ustandaryzowanego formatu stwarza interesujące wyzwania w tej dziedzinie.
+
+\chapter{Przegląd literatury}
+
+\todo{}
+
+\chapter{Implementacja}
+
+\todo{}
+
+\chapter{Eksperymenty}
+
+\todo{}
+
+\chapter{Podsumowanie}
+
+\todo{}
 
 \listoffigures
 \addcontentsline{toc}{chapter}{Spis rysunków}
