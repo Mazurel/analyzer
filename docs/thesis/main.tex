@@ -28,6 +28,7 @@
 
 \renewcommand{\ang}[1]{ang. \textit{#1}}
 \newcommand{\todo}[1]{\textbf{Do zrobienia: } #1}
+\newcommand{\mref}[1]{(\ref{#1})}
 \DeclareMathOperator{\Loss}{\mathcal{L}}
 
 \begin{document}
@@ -52,11 +53,15 @@ inżynierowie często uciekają się do bardziej dostępnej, a jednak skutecznej
 przechwytywania i zapisywania śladów aplikacji jako plików tekstowych, wzbogaconych o dodatkowe dane, takie jak znaczniki oznaczające czas.
 Te pliki, powszechnie znane jako \say{logi} lub \say{pliki logów}, służą jako kluczowe zasoby do monitorowania, diagnozowania i rozumienia wewnętrznych mechanizmów współczesnych systemów informatycznych.
 
-Pliki logów zazwyczaj przyjmują formę półstrukturalnych plików tekstowych, gdzie każda nowa linia odpowiada nowemu zdarzeniu aplikacji.
-Takie zdarzenie zazwyczaj również bezpośrednio wskazuje na konkretną lokalizację lub lokalizacje w kodzie źródłowym aplikacji.
-Dodatkowo, każda linia może zawierać dodatkowe informacje, takie jak znacznik czasu, powaga informacji, lokalizacja itp.
+Pliki logów zazwyczaj przyjmują formę półstrukturalnych plików tekstowych, gdzie
+każda nowa linia odpowiada nowemu zdarzeniu aplikacji.
+Takie zdarzenie zazwyczaj również bezpośrednio wskazuje na konkretną lokalizację
+w kodzie źródłowym aplikacji.
+Dodatkowo, każda linia może zawierać dodatkowe informacje \mref{sec:log-structure}, takie jak znacznik
+czasu, powagę informacji, lokalizację itp.
 Problem jednak polega na tym, że nie ma ujednoliconego sposobu strukturyzowania
-takich plików, więc w praktyce większość aplikacji ma zupełnie różne struktury plików logów\cite{LogTypes}, m. in. w zależności od:
+takich plików, więc w praktyce większość aplikacji ma zupełnie różne struktury
+plików logów\cite{LogTypes}, m. in. w zależności od:
 
 \begin{itemize}
   \item Języka programowania
@@ -84,11 +89,42 @@ bez potrzeby ponownego uruchamiania systemu.
 Niestety, pomimo powszechności logów we współczesnym oprogramowaniu, brak
 ustandaryzowanego formatu stwarza interesujące wyzwania w tej dziedzinie.
 
+\todo{Co w tej pracy jest zaproponowane ?}
+
+\section{Struktura logów}
+\label{sec:log-structure}
+
+Jak wspomniano wcześniej, pliki logów często przyjmują format semi-strukturalny.
+Oznacza to, że w tym samym pliku, linijki logu powinny posiadać wspólną
+strukturę.
+Struktura ta opisuje to jak wygląda linijka oraz jakie informacje muszą w niej
+się znajdywać (pomijając samą informację związaną z logiem).
+W praktyce dane takie obejmują informacje takie jak obecny czas, istotność
+wydarzenia (ang. Severity), nazwę modułu, etc.
+
+Problem jednak polega na tym, że nie istnieje uniwersalny sposób na definiowanie
+powyższej struktury.
+Sprawia to więc, że zadanie polegające na jej automatycznym zrozumieniu przez
+program komputerowy jest nietrywialne.
+Zilustrować to można na dość prostym przykładzie, na którego potrzeby
+sfabrykowano przykładową linijkę \ref{code:sample-line-1}.
+Ma ona dość łatwą strukturę z dwoma metadanymi: datą oraz informacją o ważności.
+
+\begin{figure}[ht]
+\begin{verbatim}
+01.01.2024 INFO Client connected
+\end{verbatim}
+\caption{Przykładowa linijka logu}
+\label{code:sample-line-1}
+\end{figure}
+
+\todo{Dokończyć przykład}
+
 \chapter{Przegląd literatury}
 
 \todo{}
 
-\chapter{Implementacja}
+\chapter{Zaproponowane rozwiązanie}
 
 \todo{}
 
