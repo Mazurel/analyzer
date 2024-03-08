@@ -44,97 +44,11 @@
 
 \newpage
 
-\chapter{Wstęp}
-
-Współczesne systemy informatyczne są złożone i często rozproszone pomiędzy różne niezależne komponenty, które działają asynchronicznie.
-Zrozumienie ich zachowań i interakcji w tych systemach staje się dużym wyzwaniem, zwłaszcza podczas diagnozowania problemów.
-Biorąc pod uwagę ograniczenia tradycyjnych narzędzi do rozwiązywania problemów, takich jak GDB, dla tak skomplikowanych środowisk,
-inżynierowie często uciekają się do bardziej dostępnej, a jednak skutecznej techniki:
-przechwytywania i zapisywania śladów aplikacji jako plików tekstowych, wzbogaconych o dodatkowe dane, takie jak znaczniki oznaczające czas.
-Te pliki, powszechnie znane jako \say{logi} lub \say{pliki logów}, służą jako kluczowe zasoby do monitorowania, diagnozowania i rozumienia wewnętrznych mechanizmów współczesnych systemów informatycznych.
-
-Pliki logów zazwyczaj przyjmują formę półstrukturalnych plików tekstowych, gdzie
-każda nowa linia odpowiada nowemu zdarzeniu aplikacji.
-Takie zdarzenie zazwyczaj również bezpośrednio wskazuje na konkretną lokalizację
-w kodzie źródłowym aplikacji.
-Dodatkowo, każda linia może zawierać dodatkowe informacje \mref{sec:log-structure}, takie jak znacznik
-czasu, powagę informacji, lokalizację itp.
-Problem jednak polega na tym, że nie ma ujednoliconego sposobu strukturyzowania
-takich plików, więc w praktyce większość aplikacji ma zupełnie różne struktury
-plików logów\cite{LogTypes}, m. in. w zależności od:
-
-\begin{itemize}
-  \item Języka programowania
-  \item Bibliotek cyfrowych
-  \item Systemu operacyjnego
-  \item Dostępnych zasobów
-\end{itemize}
-
-Logi stanowią nieocenione źródło danych dla
-większości nowoczesnych aplikacji, oferując głęboki wgląd w działanie aplikacji
-bez generowania znaczących dodatkowych kosztów.
-Ich wszechstronność sprawia, że znajdują zastosowanie w różnych rozwiązaniach
-technologicznych, od zintegrowanych systemów wbudowanych po zaawansowane
-rozproszone serwisy oraz usługi internetowe.
-Ta uniwersalność i bogactwo zawartych informacji sprawiają, że logi są
-przedmiotem intensywnych badań, zwłaszcza w kontekście ekstrakcji istotnych
-danych, które mogą pomóc w usprawnieniu procesów diagnostycznych, monitoringu
-wydajności oraz wykrywaniu potencjalnych problemów.
-
-Analiza logów stanowi kluczowy element utrzymania i diagnozowania współczesnych
-systemów informatycznych. Logi te służą jako cenne źródło informacji dla
-programistów, administratorów systemów i zespołów wsparcia, umożliwiając im
-zyskanie wglądu w zachowanie aplikacji i skuteczne identyfikowanie problemów,
-bez potrzeby ponownego uruchamiania systemu.
-Niestety, pomimo powszechności logów we współczesnym oprogramowaniu, brak
-ustandaryzowanego formatu stwarza interesujące wyzwania w tej dziedzinie.
-
-\todo{Co w tej pracy jest zaproponowane ?}
-
-\section{Struktura logów}
-\label{sec:log-structure}
-
-Jak wspomniano wcześniej, pliki logów często przyjmują format semi-strukturalny.
-Oznacza to, że w tym samym pliku, linijki logu powinny posiadać wspólną
-strukturę.
-Struktura ta opisuje to jak wygląda linijka oraz jakie informacje muszą w niej
-się znajdywać (pomijając samą informację związaną z logiem).
-W praktyce dane takie obejmują informacje takie jak obecny czas, istotność
-wydarzenia (ang. Severity), nazwę modułu, etc.
-
-Problem jednak polega na tym, że nie istnieje uniwersalny sposób na definiowanie
-powyższej struktury.
-Sprawia to więc, że zadanie polegające na jej automatycznym zrozumieniu przez
-program komputerowy jest nietrywialne.
-Zilustrować to można na dość prostym przykładzie, na którego potrzeby
-sfabrykowano przykładową linijkę \ref{code:sample-line-1}.
-Ma ona dość łatwą strukturę z dwoma metadanymi: datą oraz informacją o ważności.
-
-\begin{figure}[ht]
-\begin{verbatim}
-01.01.2024 INFO Client connected
-\end{verbatim}
-\caption{Przykładowa linijka logu}
-\label{code:sample-line-1}
-\end{figure}
-
-\todo{Dokończyć przykład}
-
-\chapter{Przegląd literatury}
-
-\todo{}
-
-\chapter{Zaproponowane rozwiązanie}
-
-\todo{}
-
-\chapter{Eksperymenty}
-
-\todo{}
-
-\chapter{Podsumowanie}
-
-\todo{}
+\include{sections/intro}
+\include{sections/literature}
+\include{sections/solution}
+\include{sections/experiments}
+\include{sections/summary}
 
 \listoffigures
 \addcontentsline{toc}{chapter}{Spis rysunków}
