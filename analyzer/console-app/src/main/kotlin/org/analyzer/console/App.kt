@@ -1,55 +1,65 @@
 package org.analyzer.kotlin.console
 
-import org.analyzer.kotlin.log.parsers.DictParser
-
-import kotlinx.coroutines.delay
-
-import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.input.*
+import com.varabyte.kotter.foundation.text.*
+import org.analyzer.kotlin.console.apps.Parsers
 
 fun main() = session {
-    var inputLine by liveVarOf<String?>(null)
-    val parser = DictParser()
+    val applications = listOf(Parsers(), Parsers(), Parsers())
+    var selectedIndex by liveVarOf(0)
+    var exit by liveVarOf(false)
 
-    section {
-        if (inputLine == null) {
-            text("Provide a line to be parsed: ")
-            input()
+    fun nextIndex() {
+        selectedIndex += 1
+        if (selectedIndex >= applications.size) {
+            selectedIndex = 0
         }
-        else {
-            val pattern = parser.extractPatternFromLine(inputLine!!)
-            val id = parser.putPattern(pattern)
-            pattern.humanReadable().let {
-                text("Input line: $inputLine\n")
-                text("Pattern: $it\n")
-                text("Pattern ID: $id\n")
-                text("Press enter to continue ...")
+    }
+
+    fun prevIndex() {
+        selectedIndex -= 1
+        if (selectedIndex < 0) {
+            selectedIndex = applications.size - 1
+        }
+    }
+
+    while (!exit) {
+        section {
+            clearAll()
+
+            bold { text("Select application to be used\n") }
+
+            (0..applications.size-1).forEach {
+                text("- ")
+                when {
+                    it == selectedIndex -> {
+                        underline { text(applications[it].getAppName()) }
+                    }
+                    else -> {
+                        text(applications[it].getAppName())
+                    }
+                }
+                text("\n")
             }
-        }
-    }.run {
-        onInputEntered {
-            when (inputLine) {
-                null -> {
-                  inputLine = input
+        }.runUntilSignal {
+            onKeyPressed {
+                when (key) {
+                    Keys.DOWN -> nextIndex()
+                    Keys.UP -> prevIndex()
+                    Keys.ESC -> {
+                        exit = true
+                        signal()
+                    }
+                    Keys.ENTER -> {
+                        signal()
+                    }
                 }
             }
         }
 
-        onKeyPressed {
-            when (key) {
-                Keys.ENTER -> {
-                  if (inputLine != null) {
-                    inputLine = null
-                  }
-                }
-                Keys.ESC -> {
-                  signal()
-                }
-            }
+        if (!exit) {
+            applications[selectedIndex].run()()
         }
-
-        waitForSignal()
     }
 }
-

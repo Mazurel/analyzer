@@ -1,4 +1,4 @@
-package org.analyzer.kotlin.log.parsers
+package org.analyzer.kotlin.log.parsers.dict
 
 import kotlin.test.Test
 import kotlin.test.assertFalse

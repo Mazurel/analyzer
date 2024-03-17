@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import kotlin.test.fail
 
 class DictTest {
     @Test fun `Test alphabethic compare`() {

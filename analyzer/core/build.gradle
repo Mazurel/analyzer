@@ -18,6 +18,11 @@ dependencies {
     implementation project(":drain-java-core")
 }
 
+test {
+    // Use JUnit Platform for unit tests.
+    useJUnitPlatform()
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
