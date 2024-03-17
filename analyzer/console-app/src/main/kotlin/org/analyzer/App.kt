@@ -1,4 +1,4 @@
-package org.analyzer
+package org.analyzer.console
 
 import org.analyzer.kotlin.log.parsers.DictParser
 

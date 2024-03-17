@@ -15,6 +15,6 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = 'analyzer'
 
-include 'drain-java-core', 'app'
+include 'drain-java-core', 'core', 'console-app'
 
 
