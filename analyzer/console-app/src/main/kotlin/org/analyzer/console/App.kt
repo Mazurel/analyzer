@@ -43,12 +43,13 @@ fun main() = session {
                     inputLine = null
                   }
                 }
+                Keys.ESC -> {
+                  signal()
+                }
             }
         }
 
-        while (true) {
-            delay(100)
-        }
+        waitForSignal()
     }
 }
 
