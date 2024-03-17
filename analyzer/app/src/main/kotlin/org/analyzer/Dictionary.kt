@@ -1,4 +1,4 @@
-package org.analyzer.dictionary
+package org.analyzer.kotlin.dictionary
 
 fun alphabethicCompare(input: String, lookup: String): Int {
     // We compare `input` to `lookup`

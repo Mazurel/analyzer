@@ -25,6 +25,9 @@ dependencies {
 
     // This dependency is used by the application.
     implementation libs.guava
+
+    implementation project(":drain-java-core")
+    api project(":drain-java-core")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -48,5 +51,9 @@ shadowJar {
     archiveBaseName.set('myapp')
     archiveVersion.set('1.0')
     archiveClassifier.set('')
+}
+
+run {
+    standardInput = System.in
 }
 

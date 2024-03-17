@@ -1,4 +1,4 @@
-package org.analyzer.dictionary
+package org.analyzer.kotlin.dictionary
 
 import kotlin.test.Test
 import kotlin.test.assertNotNull

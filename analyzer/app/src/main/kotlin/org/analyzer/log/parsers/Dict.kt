@@ -1,25 +1,8 @@
-package org.analyzer.parsers
+package org.analyzer.kotlin.log.parsers
 
 import kotlin.text.Regex
-import org.analyzer.dictionary.AvailableDictionaries
-import org.analyzer.parsers.HEX_NODE
-
-const val MAIN_SEPARATOR = " "
-const val DISCARDABLE_SYMBOLS = ",.[]<>?:;"
-
-public fun tokenize(line: String): List<String> {
-    val separators = arrayOf(MAIN_SEPARATOR)
-    return line.split(*separators).map {
-      eachLine ->
-        eachLine.trim {
-            DISCARDABLE_SYMBOLS.contains(it)
-        }.trimEnd {
-            DISCARDABLE_SYMBOLS.contains(it)
-        }.toString()
-    }.filter {
-        it.length > 0
-    }
-}
+import org.analyzer.kotlin.dictionary.AvailableDictionaries
+import org.analyzer.kotlin.log.Tokenizer
 
 public interface PatternNode {
     fun match(word: String): Boolean
@@ -38,8 +21,7 @@ public class RegexNode(val pattern: String, val fullName: String? = null) : Patt
     }
 
     override fun toString(): String = "Regex($pattern, $fullName)"
-    override fun humanReadable(): String = if (fullName == null) "<$pattern>"
-                                           else "<$fullName>"
+    override fun humanReadable(): String = if (fullName == null) "<$pattern>" else "<$fullName>"
 }
 
 public class ParamNode : PatternNode {
@@ -54,7 +36,7 @@ public class ParamNode : PatternNode {
 
 public class SymbolNode(val symbol: String) : PatternNode {
     val comparableSymbol: String
-        get() = symbol.lowercase() // TODO: Strip surrounding symbols
+        get() = symbol.lowercase()
 
     override fun match(word: String): Boolean = comparableSymbol == word
     override fun equals(other: Any?): Boolean {
@@ -82,7 +64,7 @@ public value class Pattern(private val nodes: List<PatternNode>) {
         val sb = StringBuilder()
         nodes.forEach {
             sb.append(it.humanReadable())
-            sb.append(MAIN_SEPARATOR)
+            sb.append(" ")
         }
         return sb.toString()
     }
@@ -108,23 +90,27 @@ public val SYMBOL_NODE = RegexNode("[+-/=<>%^()]+", "Symbol")
 public class DictParser(val dictionary: AvailableDictionaries = AvailableDictionaries.ENGLISH) {
     private val dictLookup = dictionary.getDictLookuper()
     private val patterns: MutableList<Pattern> = mutableListOf()
+    private val tokenizer =
+            Tokenizer()
+                    .withDiscardableSymbols(",", ".", "[", "]", "<", ">", "?", ":", ";")
+                    .withSeparator(" ")
 
     val patternsAmount: Int
         get() = patterns.size
 
     fun extractPatternFromLine(line: String): Pattern {
-        val tokens = tokenize(line)
+        val tokens = tokenizer.tokenize(line)
         val builder = PatternBuilder()
 
         for (token in tokens) {
-          when {
-              NUMBER_NODE.match(token) -> builder.pushNode(NUMBER_NODE)
-              HEX_NODE.match(token) -> builder.pushNode(HEX_NODE)
-              dictLookup.lookupWord(token) -> builder.pushNode(SymbolNode(token))
-              CUSTOM_WORD_NODE.match(token) -> builder.pushNode(CUSTOM_WORD_NODE)
-              SYMBOL_NODE.match(token) -> builder.pushNode(SYMBOL_NODE)
-              else -> builder.pushNode(ParamNode())
-          }
+            when {
+                NUMBER_NODE.match(token) -> builder.pushNode(NUMBER_NODE)
+                HEX_NODE.match(token) -> builder.pushNode(HEX_NODE)
+                dictLookup.lookupWord(token) -> builder.pushNode(SymbolNode(token))
+                CUSTOM_WORD_NODE.match(token) -> builder.pushNode(CUSTOM_WORD_NODE)
+                SYMBOL_NODE.match(token) -> builder.pushNode(SYMBOL_NODE)
+                else -> builder.pushNode(ParamNode())
+            }
         }
 
         return builder.build()
@@ -142,13 +128,12 @@ public class DictParser(val dictionary: AvailableDictionaries = AvailableDiction
         }
     }
 
-    fun getPatternId(inputPattern: Pattern): PatternId {
+    fun getPatternId(inputPattern: Pattern): PatternId? {
         return patterns.indexOf(inputPattern).let {
             when {
-                it < 0 -> throw RuntimeException("Pattern does not exist")
+                it < 0 -> null
                 else -> it
             }
         }
     }
 }
-

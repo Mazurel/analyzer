@@ -1,17 +1,12 @@
-package org.analyzer.parsers
+package org.analyzer.kotlin.log.parsers
 
 import kotlin.test.Test
 import kotlin.test.assertFalse
+import kotlin.test.fail
 import kotlin.test.assertTrue
 import kotlin.test.assertEquals
-import org.analyzer.parsers.SYMBOL_NODE
 
 class DictTest {
-    @Test
-    fun `Test basic tokenization`() {
-        assertEquals(listOf("Sample", "log", "message"), tokenize("Sample log message"))
-    }
-
     @Test
     fun `Test basic pattern extraction`() {
         val extractor = DictParser()
