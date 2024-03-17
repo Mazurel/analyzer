@@ -1,0 +1,14 @@
+*.log
+*.txt
+*.toc
+*.lof
+*.aux
+*.bbl
+*.bcf
+*.dvi
+*.out
+*.pdf
+*.blg
+*.lot
+*.run.xml
+auto/
