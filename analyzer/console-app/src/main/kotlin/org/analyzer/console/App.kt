@@ -3,10 +3,11 @@ package org.analyzer.kotlin.console
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
-import org.analyzer.kotlin.console.apps.Parsers
+import org.analyzer.kotlin.console.apps.DictParser
+import org.analyzer.kotlin.console.apps.DrainParser
 
 fun main() = session {
-    val applications = listOf(Parsers(), Parsers(), Parsers())
+    val applications = listOf(DictParser(), DrainParser())
     var selectedIndex by liveVarOf(0)
     var exit by liveVarOf(false)
 
