@@ -16,7 +16,7 @@ class Tokenizer {
 
     public fun tokenize(line: String): List<String> {
         if (mainSeparator == null) {
-            throw IllegalArgumentException("No main separator was provided")
+            throw IllegalArgumentException("Tokenizer is not properly configured - No main separator was provided")
         }
 
         return line.split(mainSeparator!!)

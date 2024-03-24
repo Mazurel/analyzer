@@ -5,8 +5,21 @@ import kotlin.test.assertFalse
 import kotlin.test.fail
 import kotlin.test.assertTrue
 import kotlin.test.assertEquals
+import kotlin.random.Random
 
-class LogFormatTest {
+fun Random.nextString(maxSize: Int): String {
+    assert(maxSize > 0)
+
+    val builder = StringBuilder()
+    val size = nextInt(1, maxSize)
+    (0..size).forEach {
+        builder.append(Char(nextInt('a'.code, 'z'.code)))
+    }
+
+    return builder.toString()
+}
+
+class LogFormatTests {
     @Test
     fun `Test log format`() {
         val format = LogFormat("<Day> <Month> - ")
@@ -19,7 +32,7 @@ class LogFormatTest {
     }
 }
 
-class ParserTest {
+class ParserTests {
     @Test
     fun `Test basic tokenization`() {
         val tokenizer = Tokenizer().withSeparator(" ")
@@ -37,7 +50,38 @@ class ParserTest {
             // pass
         }
         catch (ex: Exception) {
-            fail("Tokenizer construction should have failed with illegal argument exception, but got $ex")
+            ex.printStackTrace()
+            fail("Tokenizer construction should have failed with illegal argument exception, but got ${ex}")
+        }
+    }
+}
+
+class LogsTests {
+    @Test
+    fun `Log file sanity check`() {
+        val inputFile = javaClass.getResourceAsStream("/sample-log-file.txt").bufferedReader()
+        val logFile = LogFile(inputFile)
+        println("Input lines:")
+        println(logFile.lines.map{it.content}.joinToString("\n"))
+        assert(logFile.lines.size > 0)
+        logFile.lines.forEach {
+            assert(it.content.length > 0)
+        }
+    }
+
+    @Test
+    fun `Test formatting in log files`() {
+        val random = Random(10)
+        val inputFile = javaClass.getResourceAsStream("/sample-log-file.txt").bufferedReader()
+        val logFile = LogFile(inputFile, format=LogFormat("<Timestamp> "))
+        logFile.lines.forEachIndexed {
+            i, it ->
+              val randomString = random.nextString(10)
+              println(randomString)
+              assertTrue(it.metadata.containsKey("Timestamp"))
+              println("Checking for key - $randomString")
+              assertFalse(it.metadata.containsKey(random.nextString(10)))
+              assertEquals("[$i.0]", it.metadata.get("Timestamp"))
         }
     }
 }

@@ -14,10 +14,15 @@ package org.analyzer.kotlin.log
  *  }
  */
 
-class LogContents(
+
+class FormattingException(message: String): RuntimeException(message)
+
+
+class FormattedLogContent(
     val fields: Map<String, String>,
     val content: String
 )
+
 
 class LogFormat(val format: String) {
     // TODO: Handle normal characters
@@ -31,10 +36,14 @@ class LogFormat(val format: String) {
         }.toList()
     }
 
-    public fun matchLine(line: String): LogContents {
+    companion object {
+        fun basic() = LogFormat("")
+    }
+
+    public fun matchLine(line: String): FormattedLogContent {
         val lineTokens = tokenizer.tokenize(line)
         if (lineTokens.size < symbolList.size) {
-            throw RuntimeException("Input line does not match this format !")
+            throw FormattingException("Input line does not match this format !")
         }
 
         val fields = emptyMap<String, String>().toMutableMap()
@@ -45,7 +54,11 @@ class LogFormat(val format: String) {
         }
         val content = lineTokens.slice(symbolList.size..lineTokens.size-1).joinToString(separator=" ")
 
-        return LogContents(fields, content)
+        return FormattedLogContent(fields, content)
+    }
+
+    public fun hasSymbol(symbol: String): Boolean {
+        return symbolList.contains(symbol)
     }
 
     private fun getPredefinedSymbol(word: String): String? {

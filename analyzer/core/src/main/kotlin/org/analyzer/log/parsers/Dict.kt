@@ -1,8 +1,13 @@
 package org.analyzer.kotlin.log.parsers.dict
 
 import kotlin.text.Regex
+import java.util.UUID
+
 import org.analyzer.kotlin.dictionary.AvailableDictionaries
 import org.analyzer.kotlin.log.Tokenizer
+import org.analyzer.kotlin.log.parsers.PatternID
+import org.analyzer.kotlin.log.parsers.LogParser
+
 
 public interface PatternNode {
     fun match(word: String): Boolean
@@ -80,14 +85,12 @@ private class PatternBuilder {
     fun build(): Pattern = Pattern(nodes.toList())
 }
 
-public typealias PatternId = Int
-
 public val NUMBER_NODE = RegexNode("\\-?[0-9]+", "Number")
 public val HEX_NODE = RegexNode("0x[0-9ABCDEFabcdef]+", "HexNumber")
 public val CUSTOM_WORD_NODE = RegexNode("[a-zA-Z]+", "Word")
 public val SYMBOL_NODE = RegexNode("[+-/=<>%^()]+", "Symbol")
 
-public class DictParser(val dictionary: AvailableDictionaries = AvailableDictionaries.ENGLISH) {
+public class DictParser(val dictionary: AvailableDictionaries = AvailableDictionaries.ENGLISH) : LogParser {
     private val dictLookup = dictionary.getDictLookuper()
     private val patterns: MutableList<Pattern> = mutableListOf()
     private val tokenizer =
@@ -95,10 +98,10 @@ public class DictParser(val dictionary: AvailableDictionaries = AvailableDiction
                     .withDiscardableSymbols(",", ".", "[", "]", "<", ">", "?", ":", ";")
                     .withSeparator(" ")
 
-    val patternsAmount: Int
+    public val patternsAmount: Int
         get() = patterns.size
 
-    fun extractPatternFromLine(line: String): Pattern {
+    public fun extractPatternFromLine(line: String): Pattern {
         val tokens = tokenizer.tokenize(line)
         val builder = PatternBuilder()
 
@@ -116,24 +119,39 @@ public class DictParser(val dictionary: AvailableDictionaries = AvailableDiction
         return builder.build()
     }
 
-    fun putPattern(inputPattern: Pattern): PatternId {
+    public fun putPattern(inputPattern: Pattern): PatternID {
         return patterns.indexOf(inputPattern).let {
             when {
                 it < 0 -> {
                     patterns.add(inputPattern)
-                    patternsAmount - 1
+                    val i = patternsAmount - 1
+                    PatternID(0, i.toLong())
                 }
-                else -> it
+                else -> PatternID(0, it.toLong())
             }
         }
     }
 
-    fun getPatternId(inputPattern: Pattern): PatternId? {
+    public fun getPatternId(inputPattern: Pattern): PatternID? {
         return patterns.indexOf(inputPattern).let {
             when {
                 it < 0 -> null
-                else -> it
+                else -> PatternID(0, it.toLong())
             }
         }
+    }
+
+    override public fun extractPattern(line: String): PatternID {
+        val pattern = extractPatternFromLine(line)
+        val res = getPatternId(pattern)
+        if (res == null) {
+            throw IllegalArgumentException("Unknown pattern")
+        }
+        return res
+    }
+
+    override public fun learnLine(line: String): PatternID? {
+        val pattern = extractPatternFromLine(line)
+        return putPattern(pattern)
     }
 }
