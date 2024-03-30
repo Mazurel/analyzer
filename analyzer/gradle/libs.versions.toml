@@ -12,6 +12,8 @@ junit = "5.10.2"
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter-engine" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version = "1.9.0" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version = "1.8.0" }
 
 jsr305 = { module = "com.google.code.findbugs:jsr305", version = "3.0.2" }
 
@@ -19,6 +21,8 @@ picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
 
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+jgrapht = { module = "org.jgrapht:jgrapht-core", version = "1.5.2" }
 
 [bundles]
 

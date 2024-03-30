@@ -5,9 +5,10 @@ import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
 import org.analyzer.kotlin.console.apps.DictParser
 import org.analyzer.kotlin.console.apps.DrainParser
+import org.analyzer.kotlin.console.apps.MatchingApp
 
 fun main() = session {
-    val applications = listOf(DictParser(), DrainParser())
+    val applications = listOf(DictParser(), DrainParser(), MatchingApp())
     var selectedIndex by liveVarOf(0)
     var exit by liveVarOf(false)
 
