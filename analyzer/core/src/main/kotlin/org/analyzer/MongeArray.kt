@@ -96,6 +96,9 @@ class BitonicMongeArray<R, B>(
     }
 
     public fun perfmatch(): List<Pair<Int, B>?> {
+        // This is an implementation of section 4 - "Efficient minimum cost matching using quadrangle inequality"
+        // DOI: https://doi.org/10.1109/SFCS.1992.267793
+        //
         // Implementation notes:
         //  - I use 1-indexed values in the algorithm. The conversion is done right before reading
         // diagonals.
@@ -115,7 +118,6 @@ class BitonicMongeArray<R, B>(
 
             // Update only if there is no result, or current result is worse
             if (result[i - 1] != null && result[i - 1]!!.first < newCost) {
-                println("OVERLAP")
                 return
             }
 

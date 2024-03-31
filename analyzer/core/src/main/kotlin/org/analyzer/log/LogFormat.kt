@@ -3,7 +3,7 @@ package org.analyzer.kotlin.log
 /*
  *  This class accepts `format` which specifies log format.
  *  The format should consist of <Symbols> and normal characters.
- *  All <Symbols> will be extracted as single words, at the end it is assumed, that log content is specifies.
+ *  All <Symbols> will be extracted as single words, at the end it is assumed, that log content is specified.
  *  Ex.
  *  Format: "<Test1> <Test2> abc"
  *  Log: "SomeWord AnotherWord abc Log line content here"
