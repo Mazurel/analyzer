@@ -11,6 +11,12 @@ class BitonicMongeArray<R, B>(
         public val blues: List<B>,
         public val distanceBetween: (red: R, blue: B) -> Int
 ) {
+    init {
+        if (reds.size > blues.size) {
+            throw RuntimeException("Reds list cannot be longer than blues")
+        }
+    }
+
     public val height = reds.size
     public val diagonalsAmount = blues.size - reds.size + 1
 
@@ -31,7 +37,7 @@ class BitonicMongeArray<R, B>(
         val colSize = blues.map { it.toString().length }.max() + 2
 
         newLine()
-        printText(" ${" ".repeat(colSize)}  ")
+        printText(" ${" ".repeat(colSize)} ")
         for (h in blues) {
             printText(" ${h.toString().padEnd(colSize)} ")
         }
@@ -43,7 +49,7 @@ class BitonicMongeArray<R, B>(
             for (j in 0..blues.size - 1) {
                 val s = " " + distanceBetween(reds[i], blues[j]).toString().padEnd(colSize) + " "
 
-                if (blues[j] == subresult.second) {
+                if (subresult != null && blues[j] == subresult.second) {
                     printHighlightedText(s)
                 } else {
                     printText(s)
@@ -75,13 +81,12 @@ class BitonicMongeArray<R, B>(
 
         var separatingRows: MutableList<Int> = mutableListOf()
 
-        separatingRows.add(top - 1)
-        for (x in 1..(bottom - top + 1)) {
-            if (V(separatingRows.last() + 1, top - 1 + x) <
-                            W(separatingRows.last() + 1, top - 1 + x)
+        separatingRows.add(top)
+        for (x in top..bottom) {
+            if (V(separatingRows.last(), x) <
+                            W(separatingRows.last(), x)
             ) {
-                val s = top - 1 + x
-                separatingRows.add(s)
+                separatingRows.add(x)
             } else {
                 separatingRows.add(separatingRows.last())
             }
@@ -90,7 +95,7 @@ class BitonicMongeArray<R, B>(
         return separatingRows.last()
     }
 
-    public fun perfmatch(): List<Pair<Int, B>> {
+    public fun perfmatch(): List<Pair<Int, B>?> {
         // Implementation notes:
         //  - I use 1-indexed values in the algorithm. The conversion is done right before reading
         // diagonals.
@@ -109,14 +114,15 @@ class BitonicMongeArray<R, B>(
             val newCost = diagonals[diagonal - 1][element - 1]
 
             // Update only if there is no result, or current result is worse
-            if (result[i - 1] != null && result[i - 1]!!.first > newCost) {
+            if (result[i - 1] != null && result[i - 1]!!.first < newCost) {
+                println("OVERLAP")
                 return
             }
 
             result[i - 1] = Pair(newCost, blues[j - 1])
         }
 
-        borders.add(Border(left = 1, top = 1, right = blues.size - height + 1, bottom = height))
+        borders.add(Border(left = 1, top = 1, right = diagonalsAmount, bottom = height))
         while (borders.size > 0) {
             val border = borders.removeFirst()
 
@@ -132,11 +138,16 @@ class BitonicMongeArray<R, B>(
                 }
                 continue
             }
+            else if (border.top > border.bottom) {
+                // Yet another edge case
+                continue
+            }
+
+            assert(border.left < border.right)
+            assert(border.top < border.bottom)
 
             val centerK = (border.right + border.left) / 2
             val separatingRow = findSeparatingRow(centerK, border.top, border.bottom)
-            // (separatingRow, centerK) - Optimal point
-            updateResult(centerK, separatingRow)
 
             var topLeft =
                     Border(
@@ -154,9 +165,11 @@ class BitonicMongeArray<R, B>(
                     )
 
             borders.add(topLeft)
-            borders.add(bottomRight)
+            if (separatingRow < border.bottom) {
+                borders.add(bottomRight)
+            }
         }
 
-        return result.map { it!! }
+        return result
     }
 }
