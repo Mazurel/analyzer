@@ -52,4 +52,25 @@ class MongeArrayTests {
         val result = monge.perfmatch()
         assertEquals(expectedMatching, result)
     }
+
+    @Test
+    fun `Test monge harder matching`() {
+        val reds = listOf(17, 69, 119, 132, 215, 282, 317)
+        val blues = listOf(33, 76, 120, 133, 150, 175, 256, 328, 355, 375, 403, 456)
+        val monge = BitonicMongeArray(reds, blues) { a, b -> abs(a - b) }
+
+        monge.show()
+
+        val expectedMatching = listOf(
+            Pair(16, 33),
+            Pair(7, 76),
+            Pair(1, 120),
+            Pair(1, 133),
+            Pair(40, 175),
+            Pair(26, 256),
+            Pair(11, 328),
+        )
+        val result = monge.perfmatch()
+        assertEquals(expectedMatching, result)
+    }
 }

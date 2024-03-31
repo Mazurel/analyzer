@@ -165,7 +165,7 @@ class BitonicMongeArray<R, B>(
                     )
 
             borders.add(topLeft)
-            if (separatingRow < border.bottom) {
+            if (separatingRow <= border.bottom) {
                 borders.add(bottomRight)
             }
         }
