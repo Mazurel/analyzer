@@ -77,11 +77,23 @@ class LogsTests {
         logFile.lines.forEachIndexed {
             i, it ->
               val randomString = random.nextString(10)
-              println(randomString)
               assertTrue(it.metadata.containsKey("Timestamp"))
-              println("Checking for key - $randomString")
               assertFalse(it.metadata.containsKey(random.nextString(10)))
               assertEquals("[$i.0]", it.metadata.get("Timestamp"))
         }
+    }
+
+    @Test
+    fun `Test log files matching`() {
+        fun loadLogfile(file: String): LogFile {
+            val inputFile = javaClass.getResourceAsStream(file).bufferedReader()
+            return LogFile(inputFile)
+        }
+
+        val random = Random(10)
+        val f1 = loadLogfile("/sample-log-file.txt")
+        val f2 = loadLogfile("/sample-log-file2.txt")
+
+        println(f1.matchWith(f2).map { it!!.lineNumber })
     }
 }

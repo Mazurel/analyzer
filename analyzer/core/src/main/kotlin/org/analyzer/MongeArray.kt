@@ -79,6 +79,7 @@ class BitonicMongeArray<R, B>(
             return (i1..i2).map { diagonals[centerK][it - 1] }.sum()
         }
 
+        // TODO: We can do optimization here - we can preallocate list
         var separatingRows: MutableList<Int> = mutableListOf()
 
         separatingRows.add(top)

@@ -1,10 +1,9 @@
 package org.analyzer.kotlin.log
 
-import kotlin.time.Duration
-import kotlinx.datetime.LocalDateTime
-
 import java.io.BufferedReader
 import java.io.FileReader
+
+import kotlin.math.abs
 
 import org.analyzer.kotlin.log.parsers.LogParser
 import org.analyzer.kotlin.log.parsers.PatternID
@@ -12,16 +11,6 @@ import org.analyzer.kotlin.log.parsers.dict.DictParser
 import org.analyzer.kotlin.monge.BitonicMongeArray
 
 public val dictParser = DictParser()
-
-class Timestamp(
-    private val line: String,
-    private val format: LogFormat,
-    private val lineNumber: Int,
-) {
-    init {
-        TODO("Implement timestamp mechanics")
-    }
-}
 
 class LogLine(
         public val line: String,
@@ -36,6 +25,8 @@ class LogLine(
     public val metadata = formattingResult.fields
     public val patternID: PatternID?
         get() = innerPatternID
+    public val timestamp: Timestamp
+        get() = Timestamp(this)
 
     init {
         if (parser != null) {
@@ -64,7 +55,7 @@ class LogFile(
     public val lines =
             file.readLines()
                     .mapIndexed { i, line ->
-                        LogLine(line, lineNumber = i, format = format, parser = parser)
+                        LogLine(line, lineNumber = i + 1, format = format, parser = parser)
                     }
                     .toList()
 
@@ -78,6 +69,10 @@ class LogFile(
 
     public val hasParser
         get() = parser != null
+
+    public fun lineAt(lineNumber: Int): LogLine {
+        return lines[lineNumber - 1]
+    }
 
     public fun matchWith(checked: LogFile): List<LogLine?> {
         if (!hasParser) {
@@ -104,11 +99,27 @@ class LogFile(
             }
 
             if (log2log.baseline.size > log2log.checked.size) {
-                TODO()
-            }
-            else {
-                // BitonicMongeArray(log2log.baseline, log2log.checked) { a, b -> }
-                TODO()
+                BitonicMongeArray(log2log.checked, log2log.baseline) { a: LogLine, b: LogLine ->
+                    abs((a.timestamp.extractEpoch()!! - b.timestamp.extractEpoch()!!).toInt())
+                }
+                        .perfmatch()
+                        .forEachIndexed { i, matchingResult ->
+                            if (matchingResult != null) {
+                                resultMatching[matchingResult.second.lineNumber - 1] =
+                                        log2log.checked[i]
+                            }
+                        }
+            } else {
+                BitonicMongeArray(log2log.baseline, log2log.checked) { a: LogLine, b: LogLine ->
+                    abs((a.timestamp.extractEpoch()!! - b.timestamp.extractEpoch()!!).toInt())
+                }
+                        .perfmatch()
+                        .forEachIndexed { i, matchingResult ->
+                            if (matchingResult != null) {
+                                resultMatching[log2log.baseline[i].lineNumber - 1] =
+                                        matchingResult.second
+                            }
+                        }
             }
         }
 

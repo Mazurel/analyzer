@@ -25,6 +25,7 @@ class FormattedLogContent(
 
 
 class LogFormat(val format: String) {
+    // TODO: Timestamp and it's format
     // TODO: Handle normal characters
     private val tokenizer = Tokenizer().withSeparator(" ")
     private val symbolList: List<String?>
