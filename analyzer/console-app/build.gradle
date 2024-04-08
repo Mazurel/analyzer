@@ -27,7 +27,7 @@ application {
 }
 
 shadowJar {
-    archiveBaseName.set('myapp')
+    archiveBaseName.set('console-frontend')
     archiveVersion.set('1.0')
     archiveClassifier.set('')
 }

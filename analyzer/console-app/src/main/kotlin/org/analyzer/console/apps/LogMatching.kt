@@ -1,0 +1,130 @@
+package org.analyzer.kotlin.console.apps
+
+import kotlin.math.abs
+import kotlin.math.min
+import kotlin.math.max
+import kotlin.random.Random
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.bufferedReader
+import kotlin.io.path.Path
+import kotlin.io.normalize
+
+import org.analyzer.kotlin.console.components.loadFile
+import org.analyzer.kotlin.console.components.SelectFileContext
+import org.analyzer.kotlin.monge.BitonicMongeArray
+import org.analyzer.kotlin.log.LogFile
+import org.analyzer.kotlin.log.LogLine
+
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.render.*
+import com.varabyte.kotter.foundation.input.*
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.runtime.Session
+import com.varabyte.kotterx.grid.*
+
+fun Int.min(v: Int): Int {
+    return min(this, v)
+}
+
+fun Int.max(v: Int): Int {
+    return max(this, v)
+}
+
+fun RenderScope.showLineComparison(lineNumber: Int, baseline: LogLine, checked: LogLine?) {
+    val maxLineLength = 40
+
+    val t0 = "$lineNumber.".toString().padEnd(5, ' ')
+    val t1 = baseline
+        .line
+        .take(maxLineLength)
+        .padEnd(maxLineLength, ' ')
+
+    val t2 = (checked?.line?.take(maxLineLength) ?: "").padEnd(maxLineLength, ' ')
+
+    scopedState {
+        when {
+            checked == null -> red()
+            baseline == checked -> black(isBright=true)
+            else -> white()
+        }
+        textLine("$t0 | $t1 | $t2")
+    }
+}
+
+class LogMatchingApp : App {
+    private val linesAmount = 30
+
+    override fun run(): (Session.() -> Unit) = {
+        var rerun: Boolean = true
+
+        val initialPath = Path("../legacy-analyzer/sample-logs/").toAbsolutePath().normalize().toString()
+        val baselineFileContext = SelectFileContext(initialPath)
+        val checkedFileContext = SelectFileContext(initialPath)
+
+        while (rerun) {
+            rerun = false
+
+            loadFile("Select baseline file", baselineFileContext)
+            loadFile("Select checked file", checkedFileContext)
+
+            if (!baselineFileContext.isValidInput() || !checkedFileContext.isValidInput()) {
+                section {
+                    red {
+                        textLine("Invalid file provided ...")
+                        if (!baselineFileContext.isValidInput()) {
+                            textLine(" Invalid baseline - ${baselineFileContext.getCurrentPath()}")
+                        }
+                        if (!checkedFileContext.isValidInput()) {
+                            textLine(" Invalid checked - ${checkedFileContext.getCurrentPath()}")
+                        }
+                    }
+                }.runUntilSignal {
+                    onKeyPressed { signal() }
+                }
+                rerun = false // quit
+                continue
+            }
+
+            val baselinePath = baselineFileContext.getCurrentPath()
+            val checkedPath = checkedFileContext.getCurrentPath()
+
+            val baseline = LogFile(baselinePath.bufferedReader())
+            val checked = LogFile(checkedPath.bufferedReader())
+
+            val matchingResult = baseline.matchWith(checked)
+
+            var index by liveVarOf(1)
+
+            section {
+                textLine()
+                textLine("Baseline -> $baselinePath")
+                textLine("Checked -> $checkedPath")
+                textLine()
+                for (i in index..(index+linesAmount).min(matchingResult.size)) {
+                    showLineComparison(i, baseline.lineAt(i), matchingResult[i - 1])
+                }
+            }.runUntilSignal {
+                onKeyPressed {
+                    when (key) {
+                        Keys.ESC -> {
+                            signal()
+                        }
+                        Keys.ENTER -> {
+                            rerun = true
+                            signal()
+                        }
+                        Keys.DOWN -> {
+                            index = (index + 1).min(matchingResult.size - 1)
+                        }
+                        Keys.UP -> {
+                            index = (index - 1).max(1)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun getAppName(): String = "Log Matching exploration"
+}

@@ -69,37 +69,36 @@ class MatchingApp : App {
                 }
                 else -> TODO()
             }
-        }
-                .run {
-                    onInputEntered {
-                        when (state) {
-                            MatchingAppState.CHOOSING_REDS -> {
-                                reds = input.split(",").map { it.trim().toInt() }.toList()
-                                state = MatchingAppState.CHOOSING_BLUES
-                            }
-                            MatchingAppState.CHOOSING_BLUES -> {
-                                blues = input.split(",").map { it.trim().toInt() }.toList()
-                                state = MatchingAppState.SHOW_MATCHING
-                            }
-                            else -> TODO()
-                        }
+        }.run {
+            onInputEntered {
+                when (state) {
+                    MatchingAppState.CHOOSING_REDS -> {
+                        reds = input.split(",").map { it.trim().toInt() }.toList()
+                        state = MatchingAppState.CHOOSING_BLUES
                     }
-
-                    onKeyPressed {
-                        when (key) {
-                            Keys.ESC -> {
-                                signal()
-                            }
-                            Keys.ENTER -> {
-                                if (state == MatchingAppState.SHOW_MATCHING) {
-                                    state = MatchingAppState.CHOOSING_REDS
-                                }
-                            }
-                        }
+                    MatchingAppState.CHOOSING_BLUES -> {
+                        blues = input.split(",").map { it.trim().toInt() }.toList()
+                        state = MatchingAppState.SHOW_MATCHING
                     }
-
-                    waitForSignal()
+                    else -> TODO()
                 }
+            }
+
+            onKeyPressed {
+                when (key) {
+                    Keys.ESC -> {
+                        signal()
+                    }
+                    Keys.ENTER -> {
+                        if (state == MatchingAppState.SHOW_MATCHING) {
+                            state = MatchingAppState.CHOOSING_REDS
+                        }
+                    }
+                }
+            }
+
+            waitForSignal()
+        }
     }
 
     override fun getAppName(): String = "Matching exploration"

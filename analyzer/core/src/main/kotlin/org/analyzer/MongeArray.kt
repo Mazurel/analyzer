@@ -2,6 +2,35 @@ package org.analyzer.kotlin.monge
 
 private data class Border(val left: Int, val right: Int, val top: Int, val bottom: Int)
 
+private class PreallocatedArray<T>(val size: Int, def: (Int) -> T) {
+    init {
+        assert(size > 0)
+    }
+
+    private val ls = MutableList<T>(size, def)
+    private var end = 0
+
+    fun push(v: T) {
+        if (end >= size) {
+            throw RuntimeException("Tried to push over array size")
+        }
+        ls[end] = v
+        end++
+    }
+
+    fun last(): T {
+        if (end <= 0) {
+            throw RuntimeException("Array is empty")
+        }
+
+        return ls[end - 1]
+    }
+
+    fun reset() {
+        end = 0
+    }
+}
+
 // We match blues to reds
 // In terms of array:
 // reds - Are vertical - we refer to them via `i` index
@@ -70,6 +99,9 @@ class BitonicMongeArray<R, B>(
         return Pair(i, j)
     }
 
+    // TODO: For concurrency, this will need to be modified
+    private val separatingRows = PreallocatedArray<Int>(height+1) { 0 }
+
     private fun findSeparatingRow(centerK: Int, top: Int, bottom: Int): Int {
         fun V(i1: Int, i2: Int): Int {
             return (i1..i2).map { diagonals[centerK - 1][it - 1] }.sum()
@@ -79,17 +111,15 @@ class BitonicMongeArray<R, B>(
             return (i1..i2).map { diagonals[centerK][it - 1] }.sum()
         }
 
-        // TODO: We can do optimization here - we can preallocate list
-        var separatingRows: MutableList<Int> = mutableListOf()
-
-        separatingRows.add(top)
+        separatingRows.reset()
+        separatingRows.push(top)
         for (x in top..bottom) {
             if (V(separatingRows.last(), x) <
                             W(separatingRows.last(), x)
             ) {
-                separatingRows.add(x)
+                separatingRows.push(x)
             } else {
-                separatingRows.add(separatingRows.last())
+                separatingRows.push(separatingRows.last())
             }
         }
 
@@ -152,23 +182,24 @@ class BitonicMongeArray<R, B>(
             val centerK = (border.right + border.left) / 2
             val separatingRow = findSeparatingRow(centerK, border.top, border.bottom)
 
-            var topLeft =
+            val topLeft =
                     Border(
                             left = border.left,
                             top = border.top,
                             right = centerK,
                             bottom = separatingRow
                     )
-            var bottomRight =
-                    Border(
-                            left = centerK + 1,
-                            top = separatingRow + 1,
-                            right = border.right,
-                            bottom = border.bottom
-                    )
-
             borders.add(topLeft)
+
             if (separatingRow <= border.bottom) {
+                val bottomRight =
+                        Border(
+                                left = centerK + 1,
+                                top = separatingRow + 1,
+                                right = border.right,
+                                bottom = border.bottom
+                        )
+
                 borders.add(bottomRight)
             }
         }

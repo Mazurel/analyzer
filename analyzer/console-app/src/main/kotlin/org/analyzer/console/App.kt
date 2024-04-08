@@ -3,12 +3,19 @@ package org.analyzer.kotlin.console
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.runtime.MainRenderScope
+import com.varabyte.kotter.runtime.RunScope
+import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.runtime.SectionScope
+
+import org.analyzer.kotlin.console.components.*
 import org.analyzer.kotlin.console.apps.DictParser
 import org.analyzer.kotlin.console.apps.DrainParser
 import org.analyzer.kotlin.console.apps.MatchingApp
+import org.analyzer.kotlin.console.apps.LogMatchingApp
 
 fun main() = session {
-    val applications = listOf(DictParser(), DrainParser(), MatchingApp())
+    val applications = listOf(DictParser(), DrainParser(), MatchingApp(), LogMatchingApp())
     var selectedIndex by liveVarOf(0)
     var exit by liveVarOf(false)
 
@@ -32,7 +39,7 @@ fun main() = session {
 
             bold { text("Select application to be used\n") }
 
-            (0..applications.size-1).forEach {
+            (0..applications.size - 1).forEach {
                 text("- ")
                 when {
                     it == selectedIndex -> {
