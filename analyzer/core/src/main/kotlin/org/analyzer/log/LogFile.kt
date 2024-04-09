@@ -25,8 +25,7 @@ class LogLine(
     public val metadata = formattingResult.fields
     public val patternID: PatternID?
         get() = innerPatternID
-    public val timestamp: Timestamp
-        get() = Timestamp(this)
+    public val timestamp = Timestamp(this)
 
     init {
         if (parser != null) {
@@ -50,21 +49,48 @@ data class Log2Log(
 class LogFile(
         file: BufferedReader,
         format: LogFormat = LogFormat.basic(),
-        private val parser: LogParser? = dictParser
+        private val parser: LogParser? = dictParser,
+        lineLoaded: (LogLine) -> Unit = { }
 ) {
     public val lines =
             file.readLines()
                     .mapIndexed { i, line ->
-                        LogLine(line, lineNumber = i + 1, format = format, parser = parser)
+                        val l = LogLine(line, lineNumber = i + 1, format = format, parser = parser)
+                        lineLoaded(l)
+                        l
                     }
                     .toList()
 
-    init {
-        lines.forEach { it.extractPatternIfPossible() }
-    }
-
     companion object {
         fun fromPath(path: String): LogFile = LogFile(FileReader(path).buffered())
+    }
+
+    init {
+        lines.forEach { it.extractPatternIfPossible() }
+        fillTimestamps()
+    }
+
+    private fun fillTimestamps() {
+        for (i in 0 until lines.size) {
+            var j = 1
+            // We find closest line with timestamp,
+            // when `i`th line has no timestamp.
+            while (lines[i].timestamp.epoch == null) {
+                val i1 = i - j
+                val i2 = i + j
+
+                if (i1 < 0 && i2 >= lines.size) {
+                    throw RuntimeException("Too few timestamps in the log file")
+                }
+
+                if (i1 >= 0 && lines[i1].timestamp.epoch != null) {
+                    lines[i].timestamp.injectedEpoch = lines[i1].timestamp.epoch
+                }
+                if (i2 < lines.size && lines[i2].timestamp.epoch != null) {
+                    lines[i].timestamp.injectedEpoch = lines[i2].timestamp.epoch
+                }
+            }
+        }
     }
 
     public val hasParser
@@ -100,7 +126,7 @@ class LogFile(
 
             if (log2log.baseline.size > log2log.checked.size) {
                 BitonicMongeArray(log2log.checked, log2log.baseline) { a: LogLine, b: LogLine ->
-                    abs((a.timestamp.extractEpoch()!! - b.timestamp.extractEpoch()!!).toInt())
+                    abs((a.timestamp.epoch!! - b.timestamp.epoch!!).toInt())
                 }
                         .perfmatch()
                         .forEachIndexed { i, matchingResult ->
@@ -111,7 +137,7 @@ class LogFile(
                         }
             } else {
                 BitonicMongeArray(log2log.baseline, log2log.checked) { a: LogLine, b: LogLine ->
-                    abs((a.timestamp.extractEpoch()!! - b.timestamp.extractEpoch()!!).toInt())
+                    abs((a.timestamp.epoch!! - b.timestamp.epoch!!).toInt())
                 }
                         .perfmatch()
                         .forEachIndexed { i, matchingResult ->

@@ -3,6 +3,7 @@ package org.analyzer.kotlin.console.apps
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.max
+import kotlin.math.floor
 import kotlin.random.Random
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.bufferedReader
@@ -31,20 +32,21 @@ fun Int.max(v: Int): Int {
     return max(this, v)
 }
 
-fun RenderScope.showLineComparison(lineNumber: Int, baseline: LogLine, checked: LogLine?) {
+fun RenderScope.showLineComparison(lineNumber: Int, baseline: LogLine, checked: LogLine?, offset: Int = 0) {
     val maxLineLength = 40
 
     val t0 = "$lineNumber.".toString().padEnd(5, ' ')
     val t1 = baseline
         .line
+        .drop(offset)
         .take(maxLineLength)
         .padEnd(maxLineLength, ' ')
 
-    val t2 = (checked?.line?.take(maxLineLength) ?: "").padEnd(maxLineLength, ' ')
+    val t2 = (checked?.line?.drop(offset)?.take(maxLineLength) ?: "").padEnd(maxLineLength, ' ')
 
     scopedState {
         when {
-            checked == null -> red()
+            checked == null -> green()
             baseline == checked -> black(isBright=true)
             else -> white()
         }
@@ -88,21 +90,47 @@ class LogMatchingApp : App {
 
             val baselinePath = baselineFileContext.getCurrentPath()
             val checkedPath = checkedFileContext.getCurrentPath()
+            var baseline: LogFile? = null
+            var checked: LogFile? = null
 
-            val baseline = LogFile(baselinePath.bufferedReader())
-            val checked = LogFile(checkedPath.bufferedReader())
+            val progressLength = 10
+            var status by liveVarOf("")
+            var progress by liveVarOf<Int>(0)
+            section {
+                textLine("$status - $progress")
+            }.runUntilSignal {
+                status = "Loading baseline lines"
+                progress = 0
+                baseline = LogFile(baselinePath.bufferedReader()) {
+                    progress += 1
+                }
+                status = "Loading checked lines"
+                progress = 0
+                checked = LogFile(checkedPath.bufferedReader()) {
+                    progress += 1
+                }
+                signal()
+            }
 
-            val matchingResult = baseline.matchWith(checked)
+            val matchingResult = baseline!!.matchWith(checked!!)
 
-            var index by liveVarOf(1)
+            var verticalIndex by liveVarOf(1)
+            var horizontalIndex by liveVarOf(0)
+            val scrollingSpeed = 2
 
             section {
                 textLine()
                 textLine("Baseline -> $baselinePath")
                 textLine("Checked -> $checkedPath")
                 textLine()
-                for (i in index..(index+linesAmount).min(matchingResult.size)) {
-                    showLineComparison(i, baseline.lineAt(i), matchingResult[i - 1])
+                for (i in verticalIndex..(verticalIndex+linesAmount).min(matchingResult.size - 1)) {
+                    try {
+                        showLineComparison(i, baseline!!.lineAt(i), matchingResult[i - 1], offset=horizontalIndex)
+                    }
+                    catch (ex: Exception) {
+                        textLine(ex.toString())
+                        ex.printStackTrace()
+                    }
                 }
             }.runUntilSignal {
                 onKeyPressed {
@@ -115,10 +143,16 @@ class LogMatchingApp : App {
                             signal()
                         }
                         Keys.DOWN -> {
-                            index = (index + 1).min(matchingResult.size - 1)
+                            verticalIndex = (verticalIndex + scrollingSpeed).min(matchingResult.size - 1)
                         }
                         Keys.UP -> {
-                            index = (index - 1).max(1)
+                            verticalIndex= (verticalIndex - scrollingSpeed).max(1)
+                        }
+                        Keys.RIGHT -> {
+                            horizontalIndex = (horizontalIndex + scrollingSpeed)
+                        }
+                        Keys.LEFT -> {
+                            horizontalIndex= (horizontalIndex - scrollingSpeed).max(0)
                         }
                     }
                 }

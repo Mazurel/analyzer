@@ -7,14 +7,14 @@ private class PreallocatedArray<T>(val size: Int, def: (Int) -> T) {
         assert(size > 0)
     }
 
-    private val ls = MutableList<T>(size, def)
+    private val internalData = MutableList<T>(size, def)
     private var end = 0
 
     fun push(v: T) {
         if (end >= size) {
             throw RuntimeException("Tried to push over array size")
         }
-        ls[end] = v
+        internalData[end] = v
         end++
     }
 
@@ -23,7 +23,7 @@ private class PreallocatedArray<T>(val size: Int, def: (Int) -> T) {
             throw RuntimeException("Array is empty")
         }
 
-        return ls[end - 1]
+        return internalData[end - 1]
     }
 
     fun reset() {
@@ -100,7 +100,7 @@ class BitonicMongeArray<R, B>(
     }
 
     // TODO: For concurrency, this will need to be modified
-    private val separatingRows = PreallocatedArray<Int>(height+1) { 0 }
+    private val separatingRows = PreallocatedArray<Int>(height + 1) { 0 }
 
     private fun findSeparatingRow(centerK: Int, top: Int, bottom: Int): Int {
         fun V(i1: Int, i2: Int): Int {

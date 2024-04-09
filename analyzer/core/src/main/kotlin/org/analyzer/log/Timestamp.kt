@@ -107,12 +107,15 @@ class TimestampSubtokens(private val text: String): Iterator<String> {
 
 class Timestamp(private val line: LogLine) {
     // TODO: Using LogFormat
+    public val actualEpoch = extractEpoch()
+    public var injectedEpoch: Double? = null
+    public val epoch get() = if (injectedEpoch != null) injectedEpoch else actualEpoch
 
     private fun generateSubTokens(): Sequence<String> {
         return TimestampSubtokens(line.line).asSequence()
     }
 
-    public fun extractEpoch(): Double? {
+    private fun extractEpoch(): Double? {
         for (possiblyTimestamp in generateSubTokens()) {
             for (formatter in dateFormatters) {
                 try {
