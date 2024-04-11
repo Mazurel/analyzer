@@ -33,21 +33,27 @@ fun Int.max(v: Int): Int {
 }
 
 fun RenderScope.showLineComparison(lineNumber: Int, baseline: LogLine, checked: LogLine?, offset: Int = 0) {
-    val maxLineLength = 40
+    val maxLineLength = 56
 
     val t0 = "$lineNumber.".toString().padEnd(5, ' ')
     val t1 = baseline
         .line
         .drop(offset)
+        .replace('\t', ' ')
         .take(maxLineLength)
         .padEnd(maxLineLength, ' ')
 
-    val t2 = (checked?.line?.drop(offset)?.take(maxLineLength) ?: "").padEnd(maxLineLength, ' ')
+    val t2 = checked.let {
+        if (it == null) "" else it.line
+    }.drop(offset)
+     .replace('\t', ' ')
+     .take(maxLineLength)
+     .padEnd(maxLineLength, ' ')
 
     scopedState {
         when {
             checked == null -> green()
-            baseline == checked -> black(isBright=true)
+            baseline.timestamp.nonTimestampString == checked.timestamp.nonTimestampString -> black(isBright=true)
             else -> white()
         }
         textLine("$t0 | $t1 | $t2")
@@ -116,6 +122,7 @@ class LogMatchingApp : App {
 
             var verticalIndex by liveVarOf(1)
             var horizontalIndex by liveVarOf(0)
+            var gotoLine by liveVarOf(false)
             val scrollingSpeed = 2
 
             section {
@@ -132,15 +139,34 @@ class LogMatchingApp : App {
                         ex.printStackTrace()
                     }
                 }
+
+                if (gotoLine) {
+                    text(": "); input(); textLine()
+                }
             }.runUntilSignal {
+                onInputEntered {
+                    try {
+                        verticalIndex = input.toInt()
+                    }
+                    catch (ex: NumberFormatException) {
+                        // pass
+                    }
+                    gotoLine = false
+                }
+
                 onKeyPressed {
                     when (key) {
                         Keys.ESC -> {
                             signal()
                         }
                         Keys.ENTER -> {
-                            rerun = true
-                            signal()
+                            if (gotoLine) {
+                                // pass
+                            }
+                            else {
+                                rerun = true
+                                signal()
+                            }
                         }
                         Keys.DOWN -> {
                             verticalIndex = (verticalIndex + scrollingSpeed).min(matchingResult.size - 1)
@@ -152,7 +178,14 @@ class LogMatchingApp : App {
                             horizontalIndex = (horizontalIndex + scrollingSpeed)
                         }
                         Keys.LEFT -> {
-                            horizontalIndex= (horizontalIndex - scrollingSpeed).max(0)
+                            horizontalIndex = (horizontalIndex - scrollingSpeed).max(0)
+                        }
+                        Keys.G -> {
+                            val bottom = (matchingResult.size - linesAmount - 1).max(1)
+                            verticalIndex = if (verticalIndex != bottom) bottom else 1
+                        }
+                        Keys.COLON -> {
+                            gotoLine = true
                         }
                     }
                 }

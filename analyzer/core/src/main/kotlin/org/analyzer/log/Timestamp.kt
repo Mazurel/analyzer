@@ -56,6 +56,26 @@ class TimestampSubtokens(private val text: String): Iterator<String> {
         }
     }
 
+    companion object {
+        fun textMinusSubtoken(text: String, subtoken: String): String {
+            if (subtoken == "") {
+                return text
+            }
+
+            val spacesCount = subtoken.count { it == ' ' }
+            assert(spacesCount >= 0)
+            var sliceIndex = 0
+            for (i in 0..spacesCount) {
+                sliceIndex = text.indexOf(' ', sliceIndex + 1)
+
+                if (sliceIndex == -1) {
+                    throw RuntimeException("Invalid arguments provided ! ('$text', '$subtoken')")
+                }
+            }
+            return text.drop(sliceIndex + 1)
+        }
+    }
+
     override operator fun hasNext(): Boolean {
         return nextToken != null && !isLastState()
     }
@@ -105,8 +125,15 @@ class TimestampSubtokens(private val text: String): Iterator<String> {
     }
 }
 
-class Timestamp(private val line: LogLine) {
+class Timestamp(private val line: LogLine, private val timestampFormat: String? = null) {
+    // ... how did it become so convoluted ???
+    //
     // TODO: Using LogFormat
+    // TODO: Refactor this class into something nicer
+    private var timestampString = ""
+
+    public val nonTimestampString get() = TimestampSubtokens.textMinusSubtoken(line.line, timestampString)
+    public val string get() = timestampString
     public val actualEpoch = extractEpoch()
     public var injectedEpoch: Double? = null
     public val epoch get() = if (injectedEpoch != null) injectedEpoch else actualEpoch
@@ -117,22 +144,48 @@ class Timestamp(private val line: LogLine) {
 
     private fun extractEpoch(): Double? {
         for (possiblyTimestamp in generateSubTokens()) {
-            for (formatter in dateFormatters) {
-                try {
-                    return LocalDateTime.parse(possiblyTimestamp, formatter)
-                            .toInstant(ZoneOffset.UTC)
-                            .getEpochSecond()
-                            .toDouble()
-                } catch (ex: DateTimeParseException) {}
-                try {
-                    return LocalDate.parse(possiblyTimestamp, formatter).toEpochDay().toDouble()
-                } catch (ex: DateTimeParseException) {}
-                try {
-                    return possiblyTimestamp.toDouble()
+            timestampString = possiblyTimestamp
+            if (timestampFormat != null) {
+                val formatter = DateTimeFormatter.ofPattern(timestampFormat)
+
+                tryExtractEpoch(possiblyTimestamp, formatter).let {
+                    if (it != null) {
+                        return it
+                    }
                 }
-                catch (ex: NumberFormatException) {}
             }
+
+            for (formatter in dateFormatters) {
+                tryExtractEpoch(possiblyTimestamp, formatter).let {
+                    if (it != null) {
+                        return it
+                    }
+                }
+            }
+
+            try {
+                return possiblyTimestamp.toDouble()
+            }
+            catch (ex: NumberFormatException) {}
         }
+        timestampString = ""
+
+        return null
+    }
+
+    private fun tryExtractEpoch(possiblyTimestamp: String, formatter: DateTimeFormatter): Double? {
+        try {
+            return LocalDateTime.parse(possiblyTimestamp, formatter)
+                    .toInstant(ZoneOffset.UTC)
+                    .getEpochSecond()
+                    .toDouble()
+        }
+        catch (ex: DateTimeParseException) {}
+
+        try {
+            return LocalDate.parse(possiblyTimestamp, formatter).toEpochDay().toDouble()
+        }
+        catch (ex: DateTimeParseException) {}
 
         return null
     }

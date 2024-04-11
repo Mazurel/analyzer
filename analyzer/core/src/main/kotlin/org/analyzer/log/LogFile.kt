@@ -16,7 +16,8 @@ class LogLine(
         public val line: String,
         public val lineNumber: Int,
         public val format: LogFormat = LogFormat.basic(),
-        private val parser: LogParser? = null
+        private val parser: LogParser? = null,
+        timestampFormat: String? = null
 ) {
     private val formattingResult = format.matchLine(line)
     private var innerPatternID: PatternID? = null
@@ -25,7 +26,7 @@ class LogLine(
     public val metadata = formattingResult.fields
     public val patternID: PatternID?
         get() = innerPatternID
-    public val timestamp = Timestamp(this)
+    public val timestamp = Timestamp(this, timestampFormat)
 
     init {
         if (parser != null) {
