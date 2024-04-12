@@ -1,5 +1,33 @@
 \chapter{Przegląd literatury}
 
+\section{Detekcja anomalii}
+
+Problem poruszany w tej pracy, zaliczyć można do działu informatyki nazywanego
+detekcją anomali (ang. Anomaly Detection) na podstawie logów.
+Zadaniem systemów rozwiązujących taki problem, jest określenie czy dany plik
+logów zawiera informację o źródle anomalii i/lub wskazaniu w którym miejscu
+należy szukać ``winnej'' linijki logu.
+Dodatkowo, mogą one określać stopień swojej pewności w kwestii takiej predykcji
+lub wydobywać inne metadane.
+
+Pierwszym typem algorytmów wykorzystywanych w tego typu systemach, są algorytmy
+automatycznie odnajdujące strukturę logów (patrz. \ref{sec:log-structure})
+\cite{Logparser}\cite{DSN16}.
+Zwykle są one oparte o uczenie maszynowe, jednak nie jest to wymaganiem.
+Dodatkowo dzielą się one zwyczajowo na ``offline'' - takie, które wymagają
+przetworzenia całego pliku oraz ``online'' - takie, które umieją znajdywać
+strukturę podanej linii, bez potrzeby przetworzenia całego pliku.
+W algorytmach znajdujących strukturę logu istnieje parę potencjalnych celów optymalizacji:
+
+\begin{itemize}
+  \item \textbf{Jakość uzyskanych struktur} - Jest to najbardziej oczywiste
+    kryterium, jednak również dość ciężkie to ewaluacji. Istnieją systemy
+    oceniające algorytmy pod tym względem \cite{Logparser}, jednak kryterium to
+    jest dość subiektywne i może różnić się w zależności od potrzeb.
+  \item \textbf{Ilość hiperparametrów} - \todo{}
+  \item \textbf{Złożoność obliczeniowa} - \todo{}
+\end{itemize}
+
 \section{Najlepsze dopasowanie}
 
 Plik logu traktować można jak uporządkowany zbiór linijek $l$.
