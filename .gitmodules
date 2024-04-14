@@ -1,0 +1,3 @@
+[submodule "docs/thesis/magisterka"]
+	path = docs/thesis/magisterka
+	url = git@github.com:Mazurel/magisterka.git
