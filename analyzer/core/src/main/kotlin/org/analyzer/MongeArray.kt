@@ -38,7 +38,7 @@ private class PreallocatedArray<T>(val size: Int, def: (Int) -> T) {
 class BitonicMongeArray<R, B>(
         public val reds: List<R>,
         public val blues: List<B>,
-        public val distanceBetween: (red: R, blue: B) -> Int
+        public val distanceBetween: (red: R, blue: B) -> Double
 ) {
     init {
         if (reds.size > blues.size) {
@@ -49,7 +49,7 @@ class BitonicMongeArray<R, B>(
     public val height = reds.size
     public val diagonalsAmount = blues.size - reds.size + 1
 
-    private val diagonals: List<List<Int>> =
+    private val diagonals: List<List<Double>> =
             List(diagonalsAmount) { diagonalIndex ->
                 List(height) { elementIndex ->
                     val (i, j) = intoArrayIndicies(diagonalIndex + 1, elementIndex + 1)!!
@@ -103,11 +103,11 @@ class BitonicMongeArray<R, B>(
     private val separatingRows = PreallocatedArray<Int>(height + 1) { 0 }
 
     private fun findSeparatingRow(centerK: Int, top: Int, bottom: Int): Int {
-        fun V(i1: Int, i2: Int): Int {
+        fun V(i1: Int, i2: Int): Double {
             return (i1..i2).map { diagonals[centerK - 1][it - 1] }.sum()
         }
 
-        fun W(i1: Int, i2: Int): Int {
+        fun W(i1: Int, i2: Int): Double {
             return (i1..i2).map { diagonals[centerK][it - 1] }.sum()
         }
 
@@ -126,7 +126,7 @@ class BitonicMongeArray<R, B>(
         return separatingRows.last()
     }
 
-    public fun perfmatch(): List<Pair<Int, B>?> {
+    public fun perfmatch(): List<Pair<Double, B>?> {
         // This is an implementation of section 4 - "Efficient minimum cost matching using quadrangle inequality"
         // DOI: https://doi.org/10.1109/SFCS.1992.267793
         //
@@ -140,7 +140,7 @@ class BitonicMongeArray<R, B>(
             return (0..height - 1).map { Pair(diagonals[0][it], blues[it]) }.toList()
         }
 
-        val result: MutableList<Pair<Int, B>?> = MutableList(height) { null }
+        val result: MutableList<Pair<Double, B>?> = MutableList(height) { null }
         val borders: MutableList<Border> = mutableListOf()
 
         fun updateResult(diagonal: Int, element: Int) {

@@ -50,7 +50,7 @@ class MatchingApp : App {
                     input(id="blues", initialText=randomInitialInput(12))
                 }
                 MatchingAppState.SHOW_MATCHING -> {
-                    val monge = BitonicMongeArray(reds, blues) { a, b -> abs(a - b) }
+                    val monge = BitonicMongeArray(reds, blues) { a, b -> abs(a - b).toDouble() }
                     try {
                         val res = monge.perfmatch()
                         textLine("reds: " + reds.toString())

@@ -32,23 +32,32 @@ fun Int.max(v: Int): Int {
     return max(this, v)
 }
 
+fun String.padTokenTo(width: Int = 10, offset: Int = 0): String
+    = this.drop(offset)
+    .drop(offset)
+    .replace('\t', ' ')
+    .take(width)
+    .padEnd(width, ' ')
+
 fun RenderScope.showLineComparison(lineNumber: Int, baseline: LogLine, checked: LogLine?, offset: Int = 0) {
     val maxLineLength = 56
+    val dtWidth = 6
 
     val t0 = "$lineNumber.".toString().padEnd(5, ' ')
-    val t1 = baseline
-        .line
-        .drop(offset)
-        .replace('\t', ' ')
-        .take(maxLineLength)
-        .padEnd(maxLineLength, ' ')
+    val t1 = baseline.line.padTokenTo(width=maxLineLength, offset=offset)
 
     val t2 = checked.let {
         if (it == null) "" else it.line
-    }.drop(offset)
-     .replace('\t', ' ')
-     .take(maxLineLength)
-     .padEnd(maxLineLength, ' ')
+    }.padTokenTo(width=maxLineLength, offset=offset)
+
+
+    var t3 = ""
+    if (checked != null) {
+        t3 = abs(baseline.timestamp.epoch!! - checked.timestamp.epoch!!).toString()
+    }
+    t3 = t3.padTokenTo(width=dtWidth)
+
+    val t4 = baseline.patternID.toString().padTokenTo(width=40)
 
     scopedState {
         when {
@@ -56,7 +65,7 @@ fun RenderScope.showLineComparison(lineNumber: Int, baseline: LogLine, checked: 
             baseline.timestamp.nonTimestampString == checked.timestamp.nonTimestampString -> black(isBright=true)
             else -> white()
         }
-        textLine("$t0 | $t1 | $t2")
+        textLine("$t0 | $t1 | $t2 | $t3 | $t4")
     }
 }
 

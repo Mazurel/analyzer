@@ -127,7 +127,7 @@ class LogFile(
 
             if (log2log.baseline.size > log2log.checked.size) {
                 BitonicMongeArray(log2log.checked, log2log.baseline) { a: LogLine, b: LogLine ->
-                    abs((a.timestamp.epoch!! - b.timestamp.epoch!!).toInt())
+                    abs(a.timestamp.epoch!! - b.timestamp.epoch!!)
                 }
                         .perfmatch()
                         .forEachIndexed { i, matchingResult ->
@@ -138,7 +138,7 @@ class LogFile(
                         }
             } else {
                 BitonicMongeArray(log2log.baseline, log2log.checked) { a: LogLine, b: LogLine ->
-                    abs((a.timestamp.epoch!! - b.timestamp.epoch!!).toInt())
+                    abs(a.timestamp.epoch!! - b.timestamp.epoch!!)
                 }
                         .perfmatch()
                         .forEachIndexed { i, matchingResult ->
