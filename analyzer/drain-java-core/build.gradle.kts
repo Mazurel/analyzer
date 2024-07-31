@@ -8,7 +8,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-
 plugins {
     `java-library`
 
@@ -18,6 +17,7 @@ plugins {
 }
 
 description = "Drain Java Implementation"
+
 group = "io.github.bric3.drain"
 
 repositories {
@@ -39,4 +39,13 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
 }
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
