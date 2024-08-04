@@ -2,9 +2,7 @@ package org.analyzer.kotlin.log
 
 import java.io.BufferedReader
 import java.io.FileReader
-
 import kotlin.math.abs
-
 import org.analyzer.kotlin.log.parsers.LogParser
 import org.analyzer.kotlin.log.parsers.PatternID
 import org.analyzer.kotlin.log.parsers.dict.DictParser
@@ -51,13 +49,13 @@ class LogFile(
         file: BufferedReader,
         format: LogFormat = LogFormat.basic(),
         private val parser: LogParser? = dictParser,
-        lineLoaded: (LogLine) -> Unit = { }
+        lineLoadedCallback: (LogLine) -> Unit = {}
 ) {
     public val lines =
             file.readLines()
                     .mapIndexed { i, line ->
                         val l = LogLine(line, lineNumber = i + 1, format = format, parser = parser)
-                        lineLoaded(l)
+                        lineLoadedCallback(l)
                         l
                     }
                     .toList()
@@ -90,6 +88,8 @@ class LogFile(
                 if (i2 < lines.size && lines[i2].timestamp.epoch != null) {
                     lines[i].timestamp.injectedEpoch = lines[i2].timestamp.epoch
                 }
+
+                j += 1
             }
         }
     }

@@ -14,4 +14,4 @@ def run_parser(log_file_path: Path, output_file_path: Path):
     stdout, stderr = Popen(args, cwd=".").communicate()
 
 if __name__ == "__main__":
-    run_parser(Path("../../legacy-analyzer/sample-logs/log1.txt"), Path("../../log_structured.txt"))
+    run_parser(Path("data/loghub_2k/Android/Android_2k.log"), Path("data/loghub_2k/Android/Android_2k.predicted.log"))
