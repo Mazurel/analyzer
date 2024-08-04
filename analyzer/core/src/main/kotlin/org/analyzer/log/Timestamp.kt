@@ -10,14 +10,17 @@ private val timestampSurroundings: List<Pair<Char, Char>> =
         Pair('<', '>'),
     )
 
-class TimestampSubtokens(private val text: String) : Iterator<String> {
+data class TimestampSubtokens(
+    private val text: String,
+    private var subtokenIndex: Int = 5,
+    private var surroundingsIndex: Int = 0,
+    private var nextToken: String? = null,
+) : Iterator<String> {
   private val tokens = text.split(" ").map { it.trim() }.filter { it.length > 0 }
-  private var subtokenIndex = min(5, tokens.size - 1)
-  private var surroundingsIndex = 0
   private val maxJ = timestampSurroundings.size
-  private var nextToken: String?
 
   init {
+    subtokenIndex = min(subtokenIndex, this.tokens.size)
     nextToken = null
     while (!isLastState() && nextToken == null) {
       nextToken = tokenByState()
@@ -47,6 +50,10 @@ class TimestampSubtokens(private val text: String) : Iterator<String> {
 
   override operator fun hasNext(): Boolean {
     return nextToken != null && !isLastState()
+  }
+
+  public fun current(): String {
+    return this.nextToken!!
   }
 
   override operator fun next(): String {
@@ -93,6 +100,17 @@ class TimestampSubtokens(private val text: String) : Iterator<String> {
   }
 }
 
+// NOTE: This is not thread safe
+val CYCLIC_CAP = 100
+private val cyclicTimestampSubtokenPatterns: MutableList<TimestampSubtokens> = mutableListOf()
+
+private fun pushSubtokenPattern(pattern: TimestampSubtokens) {
+  if (cyclicTimestampSubtokenPatterns.size > CYCLIC_CAP) {
+    cyclicTimestampSubtokenPatterns.removeAt(0)
+  }
+  cyclicTimestampSubtokenPatterns.add(pattern)
+}
+
 class Timestamp(private val line: LogLine, private val timestampFormat: String? = null) {
   // ... how did it become so convoluted ???
   //
@@ -101,7 +119,7 @@ class Timestamp(private val line: LogLine, private val timestampFormat: String? 
   private var timestampString = ""
 
   public val nonTimestampString
-    get() = TimestampSubtokens.textMinusSubtoken(line.line, timestampString)
+    get() = TimestampSubtokens.textMinusSubtoken(line.content, timestampString)
 
   public val string
     get() = timestampString
@@ -112,42 +130,59 @@ class Timestamp(private val line: LogLine, private val timestampFormat: String? 
     get() = if (injectedEpoch != null) injectedEpoch else actualEpoch
 
   private fun generateSubTokens(): Sequence<String> {
-    return TimestampSubtokens(line.line).asSequence()
+    return TimestampSubtokens(line.content).asSequence()
+  }
+
+  private fun tryExtractEpoch(from: String): Double? {
+    var timestampVal: Double? = null
+
+    if (this.timestampFormat != null) {
+      val formatter = TimestampFormatter(this.timestampFormat)
+
+      formatter.parse(from).let {
+        if (it != null) {
+          timestampVal = it
+        }
+      }
+    }
+
+    for (formatter in dateFormatters) {
+      if (timestampVal != null) {
+        break
+      }
+
+      formatter.parse(from).let {
+        if (it != null) {
+          timestampVal = it
+        }
+      }
+    }
+
+    try {
+      timestampVal = from.toDouble()
+    } catch (ex: NumberFormatException) {}
+
+    if (timestampVal != null) {
+      this.timestampString = from
+      return timestampVal
+    }
+    return null
   }
 
   private fun extractEpoch(): Double? {
+    for (potentialPattern in cyclicTimestampSubtokenPatterns.iterator()) {
+      this.tryExtractEpoch(potentialPattern.copy(text = line.content).current()).let {
+        if (it != null) {
+          return it
+        }
+      }
+    }
+
     for (possiblyTimestamp in generateSubTokens()) {
-      var timestampVal: Double? = null
-
-      if (this.timestampFormat != null) {
-        val formatter = TimestampFormatter(this.timestampFormat)
-
-        formatter.parse(possiblyTimestamp).let {
-          if (it != null) {
-            timestampVal = it
-          }
+      this.tryExtractEpoch(possiblyTimestamp).let {
+        if (it != null) {
+          return it
         }
-      }
-
-      for (formatter in dateFormatters) {
-        if (timestampVal != null) {
-          break
-        }
-
-        formatter.parse(possiblyTimestamp).let {
-          if (it != null) {
-            timestampVal = it
-          }
-        }
-      }
-
-      try {
-        timestampVal = possiblyTimestamp.toDouble()
-      } catch (ex: NumberFormatException) {}
-
-      if (timestampVal != null) {
-        this.timestampString = possiblyTimestamp
-        return timestampVal
       }
     }
 

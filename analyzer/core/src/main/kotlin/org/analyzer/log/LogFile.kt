@@ -20,23 +20,29 @@ class LogLine(
   private val formattingResult = format.matchLine(line)
   private var innerPatternID: PatternID? = null
 
+  public val contentWithoutTimestamp: String
+    get() = this.timestamp.nonTimestampString
+
   public val content = formattingResult.content
   public val metadata = formattingResult.fields
   public val patternID: PatternID?
     get() = innerPatternID
+
+  public val humanReadablePattern: String
+    get() = parser!!.humanReadable(this.patternID!!)
 
   public val timestamp = Timestamp(this, timestampFormat)
 
   init {
     if (parser != null) {
       // If parser is available, use it
-      innerPatternID = parser.learnLine(line)
+      innerPatternID = parser.learnLine(this.contentWithoutTimestamp)
     }
   }
 
   public fun extractPatternIfPossible() {
     if (parser != null) {
-      innerPatternID = parser.extractPattern(line)
+      innerPatternID = parser.extractPattern(this.contentWithoutTimestamp)
     }
   }
 }

@@ -1,11 +1,9 @@
 from pathlib import Path
 from subprocess import Popen
 
+import evaluator
 
 def run_parser(log_file_path: Path, output_file_path: Path):
-    # assert log_file_path.exists(), f"File {log_file_path} does not exists"
-    # assert not output_file_path.exists(), f"File {output_file_path} exists (it should not !)"
-
     args = [
         "bash",
         "-c",
@@ -14,4 +12,17 @@ def run_parser(log_file_path: Path, output_file_path: Path):
     stdout, stderr = Popen(args, cwd=".").communicate()
 
 if __name__ == "__main__":
-    run_parser(Path("data/loghub_2k/Android/Android_2k.log"), Path("data/loghub_2k/Android/Android_2k.predicted.log"))
+    # TODO: List all of datasets, run evaluator, handle error:
+    # pandas.errors.ParserError: Error tokenizing data. C error: Expected 5 fields in line 4, saw 7
+    input_file = Path("benchmark/data/loghub_2k_corrected/Android/Android_2k.log").resolve().absolute()
+    grand_truth_file = Path("benchmark/data/loghub_2k_corrected/Android/Android_2k.log_structured.csv").resolve().absolute()
+    predicted_file = Path("benchmark/data/loghub_2k_corrected/Android/Android_2k.predicted.csv").resolve().absolute()
+    input_file = Path("benchmark/data/loghub_2k/Apache/Apache_2k.log").resolve().absolute()
+    grand_truth_file = Path("benchmark/data/loghub_2k/Apache/Apache_2k.log_structured.csv").resolve().absolute()
+    predicted_file = Path("benchmark/data/loghub_2k/Apache/Apache_2k.predicted.csv").resolve().absolute()
+    input_file = Path("benchmark/data/loghub_2k/Hadoop/Hadoop_2k.log").resolve().absolute()
+    grand_truth_file = Path("benchmark/data/loghub_2k/Hadoop/Hadoop_2k.log_structured.csv").resolve().absolute()
+    predicted_file = Path("benchmark/data/loghub_2k/Hadoop/Hadoop_2k.predicted.csv").resolve().absolute()
+    run_parser(Path(input_file), Path(predicted_file))
+    res = evaluator.evaluate(grand_truth_file, predicted_file)
+    print(f"Result -> {res}")

@@ -87,7 +87,5 @@ class LogsTests {
     val random = Random(10)
     val f1 = loadLogfile("/sample-log-file.txt")
     val f2 = loadLogfile("/sample-log-file2.txt")
-
-    println(f1.matchWith(f2).map { it!!.lineNumber })
   }
 }

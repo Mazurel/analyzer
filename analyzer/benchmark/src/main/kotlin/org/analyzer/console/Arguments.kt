@@ -26,8 +26,6 @@ class Arguments(
 
     if (inputFile == null) {
       this.reportError("Output file not specified, please use `--output_file`")
-    } else if (this.outputFile!!.toFile().exists()) {
-      this.reportError("File ${this.outputFile} exist ! Are you sure you want to remove it ?")
     }
 
     return this.existingErrors.toList()

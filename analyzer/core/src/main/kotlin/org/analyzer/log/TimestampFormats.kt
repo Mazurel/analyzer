@@ -34,6 +34,7 @@ private val dateFormats =
         "yyyy-MM-dd",
         "MM-dd HH:mm:ss", // 03-17 16:13:38
         "MM-dd HH:mm:ss.SSS", // 03-17 16:13:38.811
+        "EEE MMM dd HH:mm:ss yyyy", // Sun Dec 04 04:47:44 2005
     )
 
 public val dateFormatters: List<TimestampFormatter> by lazy {

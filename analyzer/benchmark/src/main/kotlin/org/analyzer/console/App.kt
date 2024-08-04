@@ -29,7 +29,9 @@ fun main(args: Array<String>) {
 
               val file =
                   LogFile(inFileName.bufferedReader()) {
-                    status = "Loading line ${it.lineNumber} from ${inFileName.toString()}"
+                    if (it.lineNumber % 10 == 0) {
+                      status = "Loading line ${it.lineNumber} - ${it.humanReadablePattern}"
+                    }
                   }
 
               if (file.lines.size == 0) {
@@ -39,9 +41,11 @@ fun main(args: Array<String>) {
 
               val outFile = outFileName.bufferedWriter()
 
-              outFile.write("LineId,Content,EventId\n")
+              outFile.write("LineId,Content,EventId,Template\n")
               for (line in file.lines) {
-                outFile.write("${line.lineNumber},${line.content},${line.patternID!!.toString()}\n")
+                val pattern = line.humanReadablePattern
+                outFile.write(
+                    "${line.lineNumber},${line.content},${line.patternID!!.toString()},${pattern}\n")
                 status =
                     "Writing to file ${outFileName.toString()} line number ${line.lineNumber} ..."
               }

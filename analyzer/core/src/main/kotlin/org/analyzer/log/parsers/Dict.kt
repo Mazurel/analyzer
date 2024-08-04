@@ -129,8 +129,7 @@ public class DictParser(val dictionary: AvailableDictionaries = AvailableDiction
       when {
         it < 0 -> {
           patterns.add(inputPattern)
-          val i = patternsAmount - 1
-          PatternID(0, i.toLong())
+          PatternID(0, (patternsAmount - 1).toLong())
         }
         else -> PatternID(0, it.toLong())
       }
@@ -158,5 +157,9 @@ public class DictParser(val dictionary: AvailableDictionaries = AvailableDiction
   override public fun learnLine(line: String): PatternID? {
     val pattern = extractPatternFromLine(line)
     return putPattern(pattern)
+  }
+
+  override public fun humanReadable(patternId: PatternID): String {
+    return this.patterns[patternId.leastSignificantBits.toInt()].humanReadable()
   }
 }
