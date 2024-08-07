@@ -20,29 +20,30 @@ class LogLine(
   private val formattingResult = format.matchLine(line)
   private var innerPatternID: PatternID? = null
 
-  public val contentWithoutTimestamp: String
-    get() = this.timestamp.nonTimestampString
-
   public val content = formattingResult.content
   public val metadata = formattingResult.fields
   public val patternID: PatternID?
     get() = innerPatternID
 
-  public val humanReadablePattern: String
-    get() = parser!!.humanReadable(this.patternID!!)
-
   public val timestamp = Timestamp(this, timestampFormat)
+  public val pattern: String?
+    get() =
+        if (this.patternID == null) {
+          null
+        } else {
+          parser?.humanReadable(this.patternID!!)
+        }
 
   init {
     if (parser != null) {
       // If parser is available, use it
-      innerPatternID = parser.learnLine(this.contentWithoutTimestamp)
+      innerPatternID = parser.learnLine(line)
     }
   }
 
   public fun extractPatternIfPossible() {
     if (parser != null) {
-      innerPatternID = parser.extractPattern(this.contentWithoutTimestamp)
+      innerPatternID = parser.extractPattern(line)
     }
   }
 }
@@ -132,7 +133,6 @@ class LogFile(
       }
 
       if (log2log.baseline.size > log2log.checked.size) {
-        // @formatter:off
         BitonicMongeArray(log2log.checked, log2log.baseline) { a: LogLine, b: LogLine ->
               abs(a.timestamp.epoch!! - b.timestamp.epoch!!)
             }
@@ -142,7 +142,6 @@ class LogFile(
                 resultMatching[matchingResult.second.lineNumber - 1] = log2log.checked[i]
               }
             }
-        // @formatter:on
       } else {
         BitonicMongeArray(log2log.baseline, log2log.checked) { a: LogLine, b: LogLine ->
               abs(a.timestamp.epoch!! - b.timestamp.epoch!!)

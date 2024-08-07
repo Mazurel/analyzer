@@ -20,7 +20,7 @@ data class TimestampSubtokens(
   private val maxJ = timestampSurroundings.size
 
   init {
-    subtokenIndex = min(subtokenIndex, this.tokens.size)
+    subtokenIndex = min(subtokenIndex, this.tokens.size - 1)
     nextToken = null
     while (!isLastState() && nextToken == null) {
       nextToken = tokenByState()
