@@ -2,6 +2,7 @@ from pathlib import Path
 from subprocess import Popen
 import os
 from dataclasses import dataclass
+import traceback
 
 import pandas
 
@@ -52,11 +53,13 @@ if __name__ == "__main__":
         run_parser(dataset.input_file, dataset.prediction_placeholder)
         try:
             res = evaluator.evaluate(dataset.grand_truth, dataset.prediction_placeholder)
-        except pandas.errors.ParserError:
-            print("Skipping ...")
+        except pandas.errors.ParserError as err:
+            traceback.print_exception(err)
+            print(f"Skipping because: {err}")
             continue
-        except FileNotFoundError:
-            print("Skipping ...")
+        except FileNotFoundError as err:
+            traceback.print_exception(err)
+            print(f"Skipping because: {err}")
             continue
 
     # TODO: List all of datasets, run evaluator, handle error:

@@ -8,9 +8,12 @@ import com.varabyte.kotter.terminal.system.SystemTerminal
 import com.varabyte.kotter.terminal.virtual.VirtualTerminal
 import kotlin.io.path.bufferedReader
 import kotlin.io.path.bufferedWriter
-import org.analyzer.kotlin.log.LogFile
+import org.analyzer.kotlin.log.LogLine
+import org.analyzer.kotlin.log.parsers.dict.DictParser
 
 fun main(args: Array<String>) {
+  val inArguments = Arguments().fetchArguments(args)
+  val errs = inArguments.collectErrors()
   session(
       terminal =
           listOf(
@@ -18,52 +21,46 @@ fun main(args: Array<String>) {
                   { VirtualTerminal.create() },
               )
               .firstSuccess()) {
-        val inArguments = Arguments().fetchArguments(args)
-        val errs = inArguments.collectErrors()
+        var status by liveVarOf("")
         section {
               for (err in errs) {
                 red(isBright = true) { textLine("- $err") }
               }
+              if (status.length > 0) {
+                textLine(status)
+              }
             }
-            .run {}
-
-        if (errs.size == 0) {
-          var status by liveVarOf("Initializing ...")
-          section { textLine(status) }
-              .runUntilSignal {
+            .runUntilSignal {
+              if (errs.size > 0) {
+                signal()
+              } else {
                 try {
                   val inFileName = inArguments.inputFile!!.toAbsolutePath().normalize()
                   val outFileName = inArguments.outputFile!!.toAbsolutePath().normalize()
 
-                  val file =
-                      LogFile(inFileName.bufferedReader()) {
-                        if (it.lineNumber % 10 == 0) {
-                          status = "Loading line ${it.lineNumber} - ${it.pattern}"
-                        }
+                  val dictParser = DictParser()
+                  val logLines =
+                      inFileName.bufferedReader().readLines().mapIndexed { i, line ->
+                        val ln = LogLine(line + 1, i, parser = dictParser)
+                        status = "Loaded line ${i + 1}"
+                        ln
                       }
 
-                  if (file.lines.size == 0) {
+                  if (logLines.size == 0) {
                     status = "Input file is empty ? No lines found at ${inFileName.toString()}"
                     signal()
                   }
 
                   val outFile = outFileName.bufferedWriter()
-
-                  outFile.write("LineId,Content,EventId,Template\n")
-                  for (line in file.lines) {
-                    val pattern = line.pattern
-                    outFile.write(
-                        "${line.lineNumber},${line.content},${line.patternID!!.toString()},${pattern}\n")
-                    status =
-                        "Writing to file ${outFileName.toString()} line number ${line.lineNumber} ..."
-                  }
-
+                  Csv(logLines).writeFile(outFile)
                   outFile.close()
+                  val ft = logLines[0].timestamp.string != ""
+                  status = "Success ! Timestamp Extracted = $ft"
                 } catch (err: Exception) {
-                  status = "ERR: $err"
+                  status = "Failed with error: $err"
                 }
                 signal()
               }
-        }
+            }
       }
 }
