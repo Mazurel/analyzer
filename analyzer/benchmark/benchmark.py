@@ -34,8 +34,7 @@ def run_parser(log_file_path: Path, output_file_path: Path):
     ]
     stdout, stderr = Popen(args, cwd=".").communicate()
 
-def load_datasets():
-    dataset_names = os.listdir(LOGHUB_PATH)
+def load_datasets(dataset_names: list[str]):
     resulting_datasets = {}
     for dataset_name in dataset_names:
         if not os.path.isdir(Path(LOGHUB_PATH) / dataset_name):
@@ -48,18 +47,20 @@ def load_datasets():
     return resulting_datasets
 
 if __name__ == "__main__":
-    for dataset_name, dataset in load_datasets():
-        print(f"Testing dataset: {dataset_name}")
+    import sys
+
+    for dataset_name, dataset in load_datasets(sys.argv[0:]):
+        print(f"Testing dataset: {dataset_name}", flush=True)
         run_parser(dataset.input_file, dataset.prediction_placeholder)
         try:
             res = evaluator.evaluate(dataset.grand_truth, dataset.prediction_placeholder)
         except pandas.errors.ParserError as err:
             traceback.print_exception(err)
-            print(f"Skipping because: {err}")
+            print(f"Skipping because: {err}", flush=True)
             continue
         except FileNotFoundError as err:
             traceback.print_exception(err)
-            print(f"Skipping because: {err}")
+            print(f"Skipping because: {err}", flush=True)
             continue
 
     # TODO: List all of datasets, run evaluator, handle error:

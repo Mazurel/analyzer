@@ -10,3 +10,9 @@ You need to use **JAVA 17** !
 ```bash
 $ ./gradlew build
 ```
+
+## Dict parser benchmarking
+
+```bash
+$ ./gradlew benchmark:performBenchmark
+```

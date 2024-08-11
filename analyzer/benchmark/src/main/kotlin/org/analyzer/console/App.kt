@@ -5,24 +5,49 @@ import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.render.*
 import com.varabyte.kotter.terminal.system.SystemTerminal
-import com.varabyte.kotter.terminal.virtual.VirtualTerminal
 import kotlin.io.path.bufferedReader
 import kotlin.io.path.bufferedWriter
 import org.analyzer.kotlin.log.LogLine
 import org.analyzer.kotlin.log.parsers.dict.DictParser
 
-fun main(args: Array<String>) {
-  val inArguments = Arguments().fetchArguments(args)
-  val errs = inArguments.collectErrors()
+inline fun perform_benchmark(args: Arguments, reportStatus: (String) -> Unit) {
+  try {
+    val inFileName = args.inputFile!!.toAbsolutePath().normalize()
+    val outFileName = args.outputFile!!.toAbsolutePath().normalize()
+
+    val dictParser = DictParser()
+    val logLines =
+        inFileName.bufferedReader().readLines().mapIndexed { i, line ->
+          LogLine(line + 1, i, parser = dictParser)
+        }
+
+    if (logLines.size == 0) {
+      reportStatus("Input file is empty ? No lines found at ${inFileName.toString()}")
+      return
+    }
+
+    val outFile = outFileName.bufferedWriter()
+    Csv(logLines).writeFile(outFile)
+    outFile.close()
+    val ft = logLines[0].timestamp.string != ""
+    reportStatus("Success ! Timestamp Extracted = $ft")
+  } catch (err: Exception) {
+    reportStatus("Failed with error: $err")
+  }
+}
+
+fun tui_ui(args: Arguments): Int {
+  val errs = args.collectErrors()
   session(
       terminal =
           listOf(
                   { SystemTerminal() },
-                  { VirtualTerminal.create() },
+                  // { VirtualTerminal.create() },
               )
               .firstSuccess()) {
         var status by liveVarOf("")
         section {
+              bold { textLine("== Dict Parser benchmark ==") }
               for (err in errs) {
                 red(isBright = true) { textLine("- $err") }
               }
@@ -34,33 +59,34 @@ fun main(args: Array<String>) {
               if (errs.size > 0) {
                 signal()
               } else {
-                try {
-                  val inFileName = inArguments.inputFile!!.toAbsolutePath().normalize()
-                  val outFileName = inArguments.outputFile!!.toAbsolutePath().normalize()
-
-                  val dictParser = DictParser()
-                  val logLines =
-                      inFileName.bufferedReader().readLines().mapIndexed { i, line ->
-                        val ln = LogLine(line + 1, i, parser = dictParser)
-                        status = "Loaded line ${i + 1}"
-                        ln
-                      }
-
-                  if (logLines.size == 0) {
-                    status = "Input file is empty ? No lines found at ${inFileName.toString()}"
-                    signal()
-                  }
-
-                  val outFile = outFileName.bufferedWriter()
-                  Csv(logLines).writeFile(outFile)
-                  outFile.close()
-                  val ft = logLines[0].timestamp.string != ""
-                  status = "Success ! Timestamp Extracted = $ft"
-                } catch (err: Exception) {
-                  status = "Failed with error: $err"
-                }
+                perform_benchmark(args) { status = it }
                 signal()
               }
             }
       }
+  return 0
+}
+
+fun cli_ui(args: Arguments): Int {
+  val errs = args.collectErrors()
+  for (err in errs) {
+    println("- $err")
+  }
+  if (errs.size > 0) {
+    return 1
+  }
+  perform_benchmark(args) { println(it) }
+  return 0
+}
+
+fun main(args: Array<String>) {
+  val inArguments = Arguments().fetchArguments(args)
+
+  var exit_code: Int
+  try {
+    exit_code = tui_ui(inArguments)
+  } catch (err: java.lang.IllegalStateException) {
+    exit_code = cli_ui(inArguments)
+  }
+  System.exit(exit_code)
 }

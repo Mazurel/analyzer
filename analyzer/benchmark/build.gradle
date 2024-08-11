@@ -46,3 +46,37 @@ tasks.named('test') {
 run {
     standardInput = System.in
 }
+
+def datasetsDir = file("data/loghub_2k_corrected/")
+def potentialDatasets = datasetsDir.listFiles().findAll { it.isDirectory() }
+def datasetBenchmarkTasks = []
+potentialDatasets.each { dir ->
+    def datasetName = dir.name
+    def taskName = "performBenchmark${datasetName}"
+    def benchmarkingTask = task(taskName, type: Exec) {
+        commandLine 'python3', 'benchmark.py', datasetName
+        standardOutput = new ByteArrayOutputStream()
+    }
+    benchmarkingTask.dependsOn build
+    datasetBenchmarkTasks << benchmarkingTask
+}
+
+task performBenchmark {
+    dependsOn datasetBenchmarkTasks
+
+    group = "Benchmarks"
+    description = "Benchmarks for all datasets"
+
+    doLast {
+        def outputFilePath = "benchmark_result.txt"
+        def outputFile = file(outputFilePath).newOutputStream()
+        def aggregatedResults = new ByteArrayOutputStream()
+        datasetBenchmarkTasks.each {
+            it.standardOutput.writeTo(aggregatedResults)
+        }
+        outputFile.write(aggregatedResults.toByteArray());
+        outputFile.close()
+
+        logger.lifecycle "All Datasets Aggregated into ${outputFilePath} !"
+    }
+}
