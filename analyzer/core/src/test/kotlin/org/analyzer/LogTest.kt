@@ -33,7 +33,7 @@ class LogFormatTests {
 class ParserTests {
   @Test
   fun `Test basic tokenization`() {
-    val tokenizer = Tokenizer().withSeparator(" ")
+    val tokenizer = Tokenizer().withSeparators(" ")
     assertEquals(listOf("Sample", "log", "message"), tokenizer.tokenize("Sample log message"))
   }
 

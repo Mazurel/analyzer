@@ -46,6 +46,10 @@ class LogLine(
       innerPatternID = parser.extractPattern(line)
     }
   }
+
+  public override fun toString(): String {
+    return this.line
+  }
 }
 
 data class Log2Log(
@@ -132,25 +136,23 @@ class LogFile(
         continue
       }
 
-      if (log2log.baseline.size > log2log.checked.size) {
-        BitonicMongeArray(log2log.checked, log2log.baseline) { a: LogLine, b: LogLine ->
-              abs(a.timestamp.epoch!! - b.timestamp.epoch!!)
-            }
-            .perfmatch()
-            .forEachIndexed { i, matchingResult ->
-              if (matchingResult != null) {
-                resultMatching[matchingResult.second.lineNumber - 1] = log2log.checked[i]
-              }
-            }
-      } else {
+      if (log2log.baseline.size <= log2log.checked.size) {
         BitonicMongeArray(log2log.baseline, log2log.checked) { a: LogLine, b: LogLine ->
               abs(a.timestamp.epoch!! - b.timestamp.epoch!!)
             }
             .perfmatch()
             .forEachIndexed { i, matchingResult ->
-              if (matchingResult != null) {
-                resultMatching[log2log.baseline[i].lineNumber - 1] = matchingResult.second
-              }
+              assert(matchingResult != null) { "Due to what perfmatch guarantees" }
+              resultMatching[log2log.baseline[i].lineNumber - 1] = matchingResult!!.second
+            }
+      } else {
+        BitonicMongeArray(log2log.checked, log2log.baseline) { a: LogLine, b: LogLine ->
+              abs(a.timestamp.epoch!! - b.timestamp.epoch!!)
+            }
+            .perfmatch()
+            .forEachIndexed { i, matchingResult ->
+              assert(matchingResult != null) { "Due to what perfmatch guarantees" }
+              resultMatching[matchingResult!!.second.lineNumber - 1] = log2log.checked[i]
             }
       }
     }

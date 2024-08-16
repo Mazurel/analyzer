@@ -47,7 +47,7 @@ run {
     standardInput = System.in
 }
 
-def datasetsDir = file("data/loghub_2k_corrected/")
+def datasetsDir = file("data/loghub_2k/")
 def potentialDatasets = datasetsDir.listFiles().findAll { it.isDirectory() }
 def datasetBenchmarkTasks = []
 potentialDatasets.each { dir ->

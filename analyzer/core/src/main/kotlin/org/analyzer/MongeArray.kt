@@ -53,7 +53,7 @@ class BitonicMongeArray<R, B>(
       List(diagonalsAmount) { diagonalIndex ->
         List(height) { elementIndex ->
           val (i, j) = intoArrayIndicies(diagonalIndex + 1, elementIndex + 1)!!
-          distanceBetween(reds[i - 1], blues[j - 1])
+          distanceBetween(reds[i], blues[j])
         }
       }
 
@@ -90,8 +90,8 @@ class BitonicMongeArray<R, B>(
 
   private fun intoArrayIndicies(diagonalIndex: Int, element: Int): Pair<Int, Int>? {
     // Convert diagonal-based coordinates into array-based
-    val i = element
-    val j = diagonalIndex + element - 1
+    val i = element - 1
+    val j = diagonalIndex + element - 2
 
     if (i < 0 || i > reds.size || j < 0 || j > blues.size) {
       return null
@@ -108,16 +108,14 @@ class BitonicMongeArray<R, B>(
     }
 
     fun W(i1: Int, i2: Int): Double {
-      return (i1..i2).map { diagonals[centerK][it - 1] }.sum()
+      return (i1..i2).map { diagonals[centerK - 1 + 1][it - 1] }.sum()
     }
 
     separatingRows.reset()
     separatingRows.push(top)
-    for (x in top..bottom) {
+    for (x in (top + 1)..bottom) {
       if (V(separatingRows.last(), x) < W(separatingRows.last(), x)) {
         separatingRows.push(x)
-      } else {
-        separatingRows.push(separatingRows.last())
       }
     }
 
@@ -132,7 +130,7 @@ class BitonicMongeArray<R, B>(
     // Implementation notes:
     //  - I use 1-indexed values in the algorithm. The conversion is done right before reading
     // diagonals.
-    //  - Always true: blues.size > reds.size
+    //  - Always true: blues.size >= reds.size
 
     // Simplest possible case - width == height
     if (diagonalsAmount == 1) {
@@ -140,21 +138,23 @@ class BitonicMongeArray<R, B>(
     }
 
     val result: MutableList<Pair<Double, B>?> = MutableList(height) { null }
-    val borders: MutableList<Border> = mutableListOf()
 
     fun updateResult(diagonal: Int, element: Int) {
       var (i, j) = intoArrayIndicies(diagonal, element)!!
       val newCost = diagonals[diagonal - 1][element - 1]
 
       // Update only if there is no result, or current result is worse
-      if (result[i - 1] != null && result[i - 1]!!.first < newCost) {
+      if (result[i] != null && result[i]!!.first < newCost) {
         return
       }
 
-      result[i - 1] = Pair(newCost, blues[j - 1])
+      result[i] = Pair(newCost, blues[j])
     }
 
+    val borders: MutableList<Border> = mutableListOf()
+    borders.clear()
     borders.add(Border(left = 1, top = 1, right = diagonalsAmount, bottom = height))
+
     while (borders.size > 0) {
       val border = borders.removeFirst()
 
@@ -178,22 +178,21 @@ class BitonicMongeArray<R, B>(
       assert(border.top < border.bottom)
 
       val centerK = (border.right + border.left) / 2
+      assert(centerK >= border.left)
+      assert(centerK <= border.right)
       val separatingRow = findSeparatingRow(centerK, border.top, border.bottom)
+      assert(separatingRow <= border.bottom)
+      assert(separatingRow >= border.top)
 
       val topLeft =
           Border(left = border.left, top = border.top, right = centerK, bottom = separatingRow)
       borders.add(topLeft)
 
-      if (separatingRow <= border.bottom) {
-        val bottomRight =
-            Border(
-                left = centerK + 1,
-                top = separatingRow + 1,
-                right = border.right,
-                bottom = border.bottom)
+      val bottomRight =
+          Border(
+              left = centerK + 1, top = separatingRow, right = border.right, bottom = border.bottom)
 
-        borders.add(bottomRight)
-      }
+      borders.add(bottomRight)
     }
 
     return result

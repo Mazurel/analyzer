@@ -101,7 +101,7 @@ public class DictParser(val dictionary: AvailableDictionaries = AvailableDiction
   private val tokenizer =
       Tokenizer()
           .withDiscardableSymbols(",", ".", "[", "]", "<", ">", "?", ":", ";")
-          .withSeparator(" ")
+          .withSeparators(" ", ",", "=")
 
   public val patternsAmount: Int
     get() = patterns.size

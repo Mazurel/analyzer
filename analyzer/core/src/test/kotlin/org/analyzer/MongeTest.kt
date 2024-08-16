@@ -71,4 +71,26 @@ class MongeArrayTests {
     val result = monge.perfmatch().map { Pair(it!!.first.toInt(), it.second) }
     assertEquals(expectedMatching, result)
   }
+
+  //        21.0   56.0   62.0   91.0
+  // 56.0   35.0   0.0    6.0    35.0
+  // 62.0   41.0   6.0    0.0    29.0
+  // 91.0   70.0   35.0   29.0   0.0
+  @Test
+  fun `Test monge matching basic edge case`() {
+    val reds = listOf(56, 62, 91)
+    val blues = listOf(21, 56, 62, 91)
+    val monge = BitonicMongeArray(reds, blues) { a, b -> abs(a - b).toDouble() }
+
+    monge.show()
+
+    val expectedMatching =
+        listOf(
+            Pair(0, 56),
+            Pair(0, 62),
+            Pair(0, 91),
+        )
+    val result = monge.perfmatch().map { Pair(it!!.first.toInt(), it.second) }
+    assertEquals(expectedMatching, result)
+  }
 }

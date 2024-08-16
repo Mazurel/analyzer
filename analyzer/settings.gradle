@@ -13,6 +13,4 @@ plugins {
 
 rootProject.name = 'analyzer'
 
-include 'drain-java-core', 'core', 'console-app', 'benchmark'
-
-
+include 'drain-java-core', 'core', 'benchmark', 'differ'

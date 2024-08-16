@@ -8,16 +8,14 @@ plugins {
     id 'application'
 }
 
-group = "org.analyzer.kotlin.console"
+group = "org.analyzer.kotlin.differ"
 
 dependencies {
     testImplementation libs.kotlin.test.junit5
     testImplementation libs.junit.jupiter.engine
-
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // For nice TUI libraries
-    implementation 'com.varabyte.kotter:kotter-jvm:1.1.2'
+    implementation "com.github.ajalt.clikt:clikt:4.4.0"
 
     implementation project(":core")
 }
@@ -28,7 +26,7 @@ application {
 }
 
 shadowJar {
-    archiveBaseName.set('console-frontend')
+    archiveBaseName.set('differ')
     archiveVersion.set('1.0')
     archiveClassifier.set('')
 }
@@ -41,8 +39,4 @@ java {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-run {
-    standardInput = System.in
 }

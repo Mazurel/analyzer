@@ -1,11 +1,11 @@
 package org.analyzer.kotlin.log
 
 class Tokenizer {
-  private var mainSeparator: String? = null
   private var discardableSymbols: String = ""
+  private var separators: MutableList<String> = mutableListOf()
 
-  public fun withSeparator(sep: String): Tokenizer {
-    mainSeparator = sep
+  public fun withSeparators(vararg separators: String): Tokenizer {
+    this.separators.addAll(separators)
     return this
   }
 
@@ -15,13 +15,13 @@ class Tokenizer {
   }
 
   public fun tokenize(line: String): List<String> {
-    if (mainSeparator == null) {
+    if (this.separators.size <= 0) {
       throw IllegalArgumentException(
-          "Tokenizer is not properly configured - No main separator was provided")
+          "Tokenizer is not properly configured - No separator was provided")
     }
 
     return line
-        .split(mainSeparator!!)
+        .split(*this.separators.toTypedArray())
         .map { eachLine ->
           eachLine
               .trim { discardableSymbols.contains(it) }

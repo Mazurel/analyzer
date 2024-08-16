@@ -18,7 +18,7 @@ inline fun perform_benchmark(args: Arguments, reportStatus: (String) -> Unit) {
     val dictParser = DictParser()
     val logLines =
         inFileName.bufferedReader().readLines().mapIndexed { i, line ->
-          LogLine(line + 1, i, parser = dictParser)
+          LogLine(line, i + 1, parser = dictParser)
         }
 
     if (logLines.size == 0) {
