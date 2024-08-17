@@ -4,3 +4,17 @@ __pycache__
 .vscode/
 .mypy_cache/
 configs/
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+*/bin/
+.project
+.settings
+.classpath
+
+logparser/
+
