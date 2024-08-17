@@ -88,11 +88,13 @@ class DiffCommand : CliktCommand() {
   val checkedPath by
       argument(name = "Checked log path", help = "Path to the checked file").file(mustExist = true)
   val collapseOk by option("-c", "--collapse-ok").flag(default = false)
+  val disableColors by option("-nc", "--no-colors").flag(default = false)
 
   override fun run() {
     val baseline = LogFile(this.baselinePath.bufferedReader())
     val checked = LogFile(this.checkedPath.bufferedReader())
     var lineNumber = 1
+    var wasPreviousOk = false
 
     for ((checkedLine, baselineLine) in getDiffPairs(baseline, checked)) {
       val lineBuilder = StringBuilder()

@@ -1,0 +1,30 @@
+plugins {
+    id 'groovy'
+}
+
+dependencies {
+    implementation project(":differ")
+}
+
+def testSource = "tests/"
+def testSuite = file(testSource)
+def testDirs = testSuite.listFiles().findAll { it.isDirectory() }
+def testTasks = []
+testDirs.each { testDir ->
+    def testName = testDir.name
+    def taskName = "e2etest${testName}"
+    def testTask = task(taskName, type: Exec) {
+        commandLine 'python3', 'test.py', testName
+    }
+    testTask.group = "E2E Tests"
+    testTask.description = "Run e2e tests for ${testName}"
+    testTask.dependsOn differ:build
+    testTasks << testTask
+}
+
+task e2eRegression {
+    dependsOn testTasks
+    mustRunAfter test
+    group = "verification"
+    description = "Run all e2e tests"
+}
