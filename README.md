@@ -5,24 +5,37 @@ Currently, due to drain, it targets JVM only.
 
 ## Building
 
-You need to use **JAVA 17** !
+This project is build using Kotlin and Java, targeting JVM platform.
+Currently it targets Java **17** only.
+
+Build system is managed by Gradle:
 
 ```bash
 $ ./gradlew build
 ```
 
-## Dict parser benchmarking
-
-NOTE: Needs Python
+To see all available tasks:
 
 ```bash
-$ ./gradlew benchmark:performBenchmark
+$ ./gradlew tasks
+```
+
+## Dict parser benchmarking
+
+Collect benchmarking data from available parsers (WIP)
+
+NOTE: This task needs Python 3 with some additional dependencies
+
+```bash
+$ ./gradlew performBenchmark
 ```
 
 ## E2E regression tests
 
-NOTE: Needs Python
+Run regression on differ tool, testing all core components.
+
+NOTE: This task needs Python 3
 
 ```bash
-$ ./gradlew e2e-tests:e2eRegression
+$ ./gradlew e2eRegression
 ```
