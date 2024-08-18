@@ -22,7 +22,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'org.analyzer.kotlin.console.AppKt'
+    mainClass = 'org.analyzer.kotlin.differ.AppKt'
 }
 
 shadowJar {
