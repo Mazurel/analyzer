@@ -30,7 +30,8 @@ def run_differ(test_case: TestCase) -> str:
         "java",
         "-jar",
         DIFFER_BIN_PATH.as_posix(),
-        "-c",
+        "--collapse-ok",
+        "--no-colors",
         test_case.baseline_path.as_posix(),
         test_case.checked_path.as_posix(),
     ]

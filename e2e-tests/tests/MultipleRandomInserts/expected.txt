@@ -1,3 +1,3 @@
-   19 | [31mADDITIONAL[0m | [17.5] Malicious line - Something happened here ?
-   35 | [31mADDITIONAL[0m | [32.1] Yet another malicious line - Something happened here ?
-   73 | [31mADDITIONAL[0m | [69.7] What ? there is another line !
+   19 | Additional | [17.5] Malicious line - Something happened here ?
+   35 | Additional | [32.1] Yet another malicious line - Something happened here ?
+   73 | Additional | [69.7] What ? there is another line !

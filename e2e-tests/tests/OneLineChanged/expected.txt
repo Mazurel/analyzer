@@ -1,1 +1,1 @@
-    6 | [31mADDITIONAL[0m | [5.0] Not a Warning: mF4Hey detected at PdPkEnnpIW timestamp: 6JzKWt8yqL
+    6 | Additional | [5.0] Not a Warning: mF4Hey detected at PdPkEnnpIW timestamp: 6JzKWt8yqL
