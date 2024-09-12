@@ -1,5 +1,5 @@
 from pathlib import Path
-from subprocess import Popen
+from subprocess import PIPE, Popen
 import os
 from dataclasses import dataclass
 import traceback
@@ -32,7 +32,11 @@ def run_parser(log_file_path: Path, output_file_path: Path):
         "--output_file",
         output_file_path.as_posix(),
     ]
-    stdout, stderr = Popen(args, cwd=".").communicate()
+    stdout, stderr = Popen(args, cwd=".", stdout=PIPE, stderr=PIPE).communicate()
+    print("PARSER RESULTS", file=sys.stderr)
+    print(stdout.decode(), file=sys.stderr)
+    print(stderr.decode(), file=sys.stderr)
+    print("END PARSER RESULTS", file=sys.stderr)
 
 def load_datasets(dataset_names: list[str]):
     resulting_datasets = {}

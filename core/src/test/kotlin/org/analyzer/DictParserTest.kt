@@ -1,4 +1,4 @@
-package org.analyzer.kotlin.log.parsers.dict
+package org.analyzer.kotlin.log.parsers
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,13 +10,13 @@ class DictTest {
     val line = "Hello Andrzej my old d0g"
     val expectedPattern =
         listOf(
-            SymbolNode("Hello"),
+            DictSymbolNode("Hello"),
             CUSTOM_WORD_NODE,
-            SymbolNode("my"),
-            SymbolNode("old"),
-            ParamNode(),
+            DictSymbolNode("my"),
+            DictSymbolNode("old"),
+            DictParamNode(),
         )
-    assertEquals(Pattern(expectedPattern), extractor.extractPatternFromLine(line))
+    assertEquals(DictPattern(expectedPattern), extractor.extractPatternFromLine(line))
   }
 
   @Test
@@ -28,10 +28,10 @@ class DictTest {
             NUMBER_NODE,
             SYMBOL_NODE,
             NUMBER_NODE,
-            SymbolNode("is"),
+            DictSymbolNode("is"),
             NUMBER_NODE,
         )
-    assertEquals(Pattern(expectedPattern), extractor.extractPatternFromLine(line))
+    assertEquals(DictPattern(expectedPattern), extractor.extractPatternFromLine(line))
   }
 
   @Test
@@ -40,15 +40,15 @@ class DictTest {
     val line = "Got response 404 from server - shutting down"
     val expectedPattern =
         listOf(
-            SymbolNode("Got"),
-            SymbolNode("response"),
+            DictSymbolNode("Got"),
+            DictSymbolNode("response"),
             NUMBER_NODE,
-            SymbolNode("from"),
-            SymbolNode("server"),
+            DictSymbolNode("from"),
+            DictSymbolNode("server"),
             SYMBOL_NODE,
-            SymbolNode("shutting"),
-            SymbolNode("down"),
+            DictSymbolNode("shutting"),
+            DictSymbolNode("down"),
         )
-    assertEquals(Pattern(expectedPattern), extractor.extractPatternFromLine(line))
+    assertEquals(DictPattern(expectedPattern), extractor.extractPatternFromLine(line))
   }
 }

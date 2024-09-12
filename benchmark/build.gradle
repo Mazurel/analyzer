@@ -57,6 +57,7 @@ potentialDatasets.each { dir ->
         commandLine 'python3', 'benchmark.py', datasetName
         standardOutput = new ByteArrayOutputStream()
     }
+    benchmarkingTask.group = "Benchmarks"
     benchmarkingTask.dependsOn build
     datasetBenchmarkTasks << benchmarkingTask
 }

@@ -95,7 +95,7 @@ class DiffCommand : CliktCommand() {
     val differ = Differ.buildDiffer(baseline, checked)
     var lineNumber = 1
 
-    differ.onOk { self, other ->
+    differ.onOk { self, _ ->
       val lineNumberStr = lineNumber.toString().padStart(5, ' ')
       if (!collapseOk) {
         terminal.bold { write(lineNumberStr) }

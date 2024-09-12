@@ -8,14 +8,14 @@ import com.varabyte.kotter.terminal.system.SystemTerminal
 import kotlin.io.path.bufferedReader
 import kotlin.io.path.bufferedWriter
 import org.analyzer.kotlin.log.LogLine
-import org.analyzer.kotlin.log.parsers.dict.DictParser
+import org.analyzer.kotlin.log.parsers.DrainParser
 
 inline fun perform_benchmark(args: Arguments, reportStatus: (String) -> Unit) {
   try {
     val inFileName = args.inputFile!!.toAbsolutePath().normalize()
     val outFileName = args.outputFile!!.toAbsolutePath().normalize()
 
-    val dictParser = DictParser()
+    val dictParser = DrainParser()
     val logLines =
         inFileName.bufferedReader().readLines().mapIndexed { i, line ->
           LogLine(line, i + 1, parser = dictParser)
@@ -32,7 +32,8 @@ inline fun perform_benchmark(args: Arguments, reportStatus: (String) -> Unit) {
     val ft = logLines[0].timestamp.string != ""
     reportStatus("Success ! Timestamp Extracted = $ft")
   } catch (err: Exception) {
-    reportStatus("Failed with error: $err")
+    val stackTraceStr = err.stackTraceToString()
+    reportStatus("Failed with error: $err\nStack trace:\n$stackTraceStr")
   }
 }
 

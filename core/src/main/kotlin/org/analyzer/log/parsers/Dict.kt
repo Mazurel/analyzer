@@ -1,27 +1,25 @@
-package org.analyzer.kotlin.log.parsers.dict
+package org.analyzer.kotlin.log.parsers
 
 import kotlin.text.Regex
 import org.analyzer.kotlin.dictionary.AvailableDictionaries
 import org.analyzer.kotlin.log.Tokenizer
-import org.analyzer.kotlin.log.parsers.LogParser
-import org.analyzer.kotlin.log.parsers.PatternID
 
-public interface PatternNode {
+public interface DictPatternNode {
   fun match(word: String): Boolean
 
   fun humanReadable(): String
 }
 
-public class RegexNode(val pattern: String, val fullName: String? = null) : PatternNode {
+internal class DictRegexNode(val pattern: String, val fullName: String? = null) : DictPatternNode {
   val regex = Regex(pattern)
 
   override fun match(word: String): Boolean = regex.matchEntire(word) != null
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is RegexNode) return false
+    if (other !is DictRegexNode) return false
 
-    return pattern == other.pattern
+    return this.pattern == other.pattern
   }
 
   override fun toString(): String = "Regex($pattern, $fullName)"
@@ -29,11 +27,11 @@ public class RegexNode(val pattern: String, val fullName: String? = null) : Patt
   override fun humanReadable(): String = if (fullName == null) "<$pattern>" else "<$fullName>"
 }
 
-public class ParamNode : PatternNode {
+internal class DictParamNode : DictPatternNode {
   override fun match(word: String): Boolean = true
 
   override fun equals(other: Any?): Boolean {
-    return other is ParamNode
+    return other is DictParamNode
   }
 
   override fun toString(): String = "Parameter"
@@ -41,7 +39,7 @@ public class ParamNode : PatternNode {
   override fun humanReadable(): String = "<Param>"
 }
 
-public class SymbolNode(val symbol: String) : PatternNode {
+internal class DictSymbolNode(val symbol: String) : DictPatternNode {
   val comparableSymbol: String
     get() = symbol.lowercase()
 
@@ -49,7 +47,7 @@ public class SymbolNode(val symbol: String) : PatternNode {
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is SymbolNode) return false
+    if (other !is DictSymbolNode) return false
 
     return symbol == other.symbol
   }
@@ -60,7 +58,7 @@ public class SymbolNode(val symbol: String) : PatternNode {
 }
 
 @JvmInline
-public value class Pattern(private val nodes: List<PatternNode>) {
+public value class DictPattern(public val nodes: List<DictPatternNode>) {
   fun match(tokens: List<String>): Boolean {
     if (tokens.size != nodes.size) {
       return false
@@ -79,25 +77,25 @@ public value class Pattern(private val nodes: List<PatternNode>) {
   }
 }
 
-private class PatternBuilder {
-  val nodes: MutableList<PatternNode> = mutableListOf()
+private class DictPatternBuilder {
+  val nodes: MutableList<DictPatternNode> = mutableListOf()
 
-  fun pushNode(node: PatternNode) {
+  fun pushNode(node: DictPatternNode) {
     nodes.add(node)
   }
 
-  fun build(): Pattern = Pattern(nodes.toList())
+  fun build(): DictPattern = DictPattern(nodes.toList())
 }
 
-public val NUMBER_NODE = RegexNode("\\-?[0-9]+", "Number")
-public val HEX_NODE = RegexNode("0x[0-9ABCDEFabcdef]+", "HexNumber")
-public val CUSTOM_WORD_NODE = RegexNode("[a-zA-Z]+", "Word")
-public val SYMBOL_NODE = RegexNode("[+-/=<>%^()]+", "Symbol")
+internal val NUMBER_NODE = DictRegexNode("\\-?[0-9]+", "Number")
+internal val HEX_NODE = DictRegexNode("0x[0-9ABCDEFabcdef]+", "HexNumber")
+internal val CUSTOM_WORD_NODE = DictRegexNode("[a-zA-Z]+", "Word")
+internal val SYMBOL_NODE = DictRegexNode("[+-/=<>%^()]+", "Symbol")
 
 public class DictParser(val dictionary: AvailableDictionaries = AvailableDictionaries.ENGLISH) :
     LogParser {
   private val dictLookup = dictionary.getDictLookuper()
-  private val patterns: MutableList<Pattern> = mutableListOf()
+  private val patterns: MutableList<DictPattern> = mutableListOf()
   private val tokenizer =
       Tokenizer()
           .withDiscardableSymbols(",", ".", "[", "]", "<", ">", "?", ":", ";")
@@ -106,25 +104,25 @@ public class DictParser(val dictionary: AvailableDictionaries = AvailableDiction
   public val patternsAmount: Int
     get() = patterns.size
 
-  public fun extractPatternFromLine(line: String): Pattern {
+  public fun extractPatternFromLine(line: String): DictPattern {
     val tokens = tokenizer.tokenize(line)
-    val builder = PatternBuilder()
+    val builder = DictPatternBuilder()
 
     for (token in tokens) {
       when {
         NUMBER_NODE.match(token) -> builder.pushNode(NUMBER_NODE)
         HEX_NODE.match(token) -> builder.pushNode(HEX_NODE)
-        dictLookup.lookupWord(token) -> builder.pushNode(SymbolNode(token))
+        dictLookup.lookupWord(token) -> builder.pushNode(DictSymbolNode(token))
         CUSTOM_WORD_NODE.match(token) -> builder.pushNode(CUSTOM_WORD_NODE)
         SYMBOL_NODE.match(token) -> builder.pushNode(SYMBOL_NODE)
-        else -> builder.pushNode(ParamNode())
+        else -> builder.pushNode(DictParamNode())
       }
     }
 
     return builder.build()
   }
 
-  public fun putPattern(inputPattern: Pattern): PatternID {
+  public fun putPattern(inputPattern: DictPattern): PatternID {
     return patterns.indexOf(inputPattern).let {
       when {
         it < 0 -> {
@@ -136,7 +134,7 @@ public class DictParser(val dictionary: AvailableDictionaries = AvailableDiction
     }
   }
 
-  public fun getPatternId(inputPattern: Pattern): PatternID? {
+  public fun getPatternId(inputPattern: DictPattern): PatternID? {
     return patterns.indexOf(inputPattern).let {
       when {
         it < 0 -> null

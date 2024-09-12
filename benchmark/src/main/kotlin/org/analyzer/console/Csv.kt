@@ -34,7 +34,7 @@ class Csv(val logLines: List<LogLine>) {
         .append(SEPARATOR)
         .append(line.patternID.toString())
         .append(SEPARATOR)
-        .append(this.sanitizeFieldContent(line.pattern!!))
+        .append(this.sanitizeFieldContent(line.pattern.toString()))
         .append('\n')
         .toString()
   }

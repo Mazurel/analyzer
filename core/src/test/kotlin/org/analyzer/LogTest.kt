@@ -1,11 +1,7 @@
 package org.analyzer.kotlin.log
 
 import kotlin.random.Random
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 fun Random.nextString(maxSize: Int): String {
   assert(maxSize > 0)
@@ -70,7 +66,6 @@ class LogsTests {
     val inputFile = javaClass.getResourceAsStream("/sample-log-file.txt").bufferedReader()
     val logFile = LogFile(inputFile, format = LogFormat("<Timestamp> "))
     logFile.lines.forEachIndexed { i, it ->
-      val randomString = random.nextString(10)
       assertTrue(it.metadata.containsKey("Timestamp"))
       assertFalse(it.metadata.containsKey(random.nextString(10)))
       assertEquals("[$i.0]", it.metadata.get("Timestamp"))
@@ -84,8 +79,19 @@ class LogsTests {
       return LogFile(inputFile)
     }
 
-    val random = Random(10)
     val f1 = loadLogfile("/sample-log-file.txt")
     val f2 = loadLogfile("/sample-log-file2.txt")
+    val nulledLineNumbers = setOf(1, 2, 3)
+
+    val matchingResult = f1.matchWith(f2)
+    matchingResult.forEachIndexed { idx, line ->
+      val lineNumber = idx + 1
+      val shouldBeNull = nulledLineNumbers.contains(lineNumber)
+      if (shouldBeNull) {
+        assertNull(line, "Matching of the line number $lineNumber should be null")
+      } else {
+        assertNotNull(line, "Matching of the line number $lineNumber should not be null")
+      }
+    }
   }
 }

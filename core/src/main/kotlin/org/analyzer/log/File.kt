@@ -3,54 +3,8 @@ package org.analyzer.kotlin.log
 import java.io.BufferedReader
 import java.io.FileReader
 import kotlin.math.abs
-import org.analyzer.kotlin.log.parsers.LogParser
-import org.analyzer.kotlin.log.parsers.PatternID
-import org.analyzer.kotlin.log.parsers.dict.DictParser
+import org.analyzer.kotlin.log.parsers.*
 import org.analyzer.kotlin.monge.BitonicMongeArray
-
-public val dictParser = DictParser()
-
-class LogLine(
-    public val line: String,
-    public val lineNumber: Int,
-    public val format: LogFormat = LogFormat.basic(),
-    private val parser: LogParser? = null,
-    timestampFormat: String? = null
-) {
-  private val formattingResult = format.matchLine(line)
-  private var innerPatternID: PatternID? = null
-
-  public val content = formattingResult.content
-  public val metadata = formattingResult.fields
-  public val patternID: PatternID?
-    get() = innerPatternID
-
-  public val timestamp = Timestamp(this, timestampFormat)
-  public val pattern: String?
-    get() =
-        if (this.patternID == null) {
-          null
-        } else {
-          parser?.humanReadable(this.patternID!!)
-        }
-
-  init {
-    if (parser != null) {
-      // If parser is available, use it
-      innerPatternID = parser.learnLine(line)
-    }
-  }
-
-  public fun extractPatternIfPossible() {
-    if (parser != null) {
-      innerPatternID = parser.extractPattern(line)
-    }
-  }
-
-  public override fun toString(): String {
-    return this.line
-  }
-}
 
 data class Log2Log(
     public val baseline: MutableList<LogLine> = mutableListOf(),
@@ -58,28 +12,35 @@ data class Log2Log(
 )
 
 class LogFile(
-    file: BufferedReader,
-    format: LogFormat = LogFormat.basic(),
-    private val parser: LogParser? = dictParser,
+    inputFile: BufferedReader,
+    private val format: LogFormat = LogFormat.basic(),
+    private val parser: LogParser? = defaultParser,
     lineLoadedCallback: (LogLine) -> Unit = {}
 ) {
-  public val lines =
-      file
-          .readLines()
-          .mapIndexed { i, line ->
-            val l = LogLine(line, lineNumber = i + 1, format = format, parser = parser)
-            lineLoadedCallback(l)
-            l
-          }
-          .toList()
+  public val lines: List<LogLine>
+
+  public val hasParser
+    get() = parser != null
 
   companion object {
     fun fromPath(path: String): LogFile = LogFile(FileReader(path).buffered())
   }
 
   init {
-    lines.forEach { it.extractPatternIfPossible() }
-    fillTimestamps()
+    lines = this.loadLines(inputFile, lineLoadedCallback)
+    this.fillTimestamps()
+  }
+
+  private fun loadLines(inputFile: BufferedReader, lineLoadedCB: (LogLine) -> Unit): List<LogLine> {
+    return inputFile
+        .readLines()
+        .mapIndexed { i, line ->
+          LogLine(line, lineNumber = i + 1, format = this.format, parser = this.parser).let {
+            lineLoadedCB(it)
+            it
+          }
+        }
+        .toList()
   }
 
   private fun fillTimestamps() {
@@ -106,9 +67,6 @@ class LogFile(
       }
     }
   }
-
-  public val hasParser
-    get() = parser != null
 
   public fun lineAt(lineNumber: Int): LogLine {
     return lines[lineNumber - 1]

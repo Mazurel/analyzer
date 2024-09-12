@@ -1,7 +1,9 @@
-package org.analyzer.kotlin.log.parsers.drain
+package org.analyzer.kotlin.log.parsers
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+
+// NOTE: Drain is assumed to be tested by original authors
 
 class DrainTest {
   @Test

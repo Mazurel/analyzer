@@ -1,24 +1,24 @@
-package org.analyzer.kotlin.log.parsers.drain
+package org.analyzer.kotlin.log.parsers
 
 import io.github.bric3.drain.core.Drain
 import io.github.bric3.drain.core.LogCluster
 import org.analyzer.kotlin.log.parsers.*
 
-class Pattern(val id: PatternID, val content: List<String>) {
+public class DrainPattern(public val id: PatternID, public val content: List<String>) {
   companion object {
-    fun fromLogCluster(cluster: LogCluster): Pattern {
-      return Pattern(cluster.clusterId(), cluster.tokens())
+    public fun fromLogCluster(cluster: LogCluster): DrainPattern {
+      return DrainPattern(cluster.clusterId(), cluster.tokens())
     }
   }
 
-  fun getPrettyPattern(): String {
+  public fun getPrettyPattern(): String {
     return content.joinToString(separator = " ")
   }
 }
 
 class DrainParser(private val depth: Int = 4) : LogParser {
   val drain = Drain.drainBuilder().depth(depth).build()
-  val patternLookup: MutableMap<PatternID, Pattern> = mutableMapOf()
+  val patternLookup: MutableMap<PatternID, DrainPattern> = mutableMapOf()
 
   override fun extractPattern(line: String): PatternID {
     val pat = this.searchLine(line)
@@ -40,14 +40,14 @@ class DrainParser(private val depth: Int = 4) : LogParser {
     if (maybeCluster == null) {
       throw RuntimeException("Unknown pattern ID - ${patternId}")
     }
-    val pattern = Pattern.fromLogCluster(maybeCluster)
+    val pattern = DrainPattern.fromLogCluster(maybeCluster)
     this.patternLookup.put(patternId, pattern)
     return pattern.getPrettyPattern()
   }
 
-  public fun searchLine(line: String): Pattern {
+  public fun searchLine(line: String): DrainPattern {
     val cluster = drain.searchLogMessage(line)
-    val pattern = Pattern.fromLogCluster(cluster)
+    val pattern = DrainPattern.fromLogCluster(cluster)
     this.patternLookup.put(cluster.clusterId(), pattern)
     return pattern
   }

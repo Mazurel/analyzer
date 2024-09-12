@@ -1,0 +1,9 @@
+[
+  {
+    "label": "Build Magisterka",
+    "command": "cd docs/thesis/magisterka && make",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "never"
+  }
+]
