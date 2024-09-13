@@ -5,7 +5,6 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
-import org.analyzer.kotlin.log.LogFile
 
 class Terminal(val colorsEnabled: Boolean) {
   enum class ANSIStyle(val value: Int) {
@@ -18,6 +17,10 @@ class Terminal(val colorsEnabled: Boolean) {
     BLUE(34)
   }
 
+  enum class ANSICommand(val value: String) {
+    ERASE_IN_LINE("2K")
+  }
+
   val currentLine = StringBuilder()
   var inScope = false
 
@@ -27,6 +30,12 @@ class Terminal(val colorsEnabled: Boolean) {
   fun ansiStyle(command: ANSIStyle) {
     if (this.supportsColors) {
       this.currentLine.append("\u001B[${command.value}m")
+    }
+  }
+
+  fun ansiCommand(command: ANSICommand) {
+    if (this.supportsColors) {
+      this.currentLine.append("\u001B[${command.value}")
     }
   }
 
@@ -77,6 +86,12 @@ class Terminal(val colorsEnabled: Boolean) {
   inline fun green(scope: Terminal.() -> Unit) {
     this.scopedStyle(ANSIStyle.GREEN) { this.scope() }
   }
+
+  fun clearLine() {
+    this.ansiCommand(ANSICommand.ERASE_IN_LINE)
+    this.write("\r")
+    this.flush()
+  }
 }
 
 class DiffCommand : CliktCommand() {
@@ -86,13 +101,45 @@ class DiffCommand : CliktCommand() {
   val checkedPath by
       argument(name = "Checked log path", help = "Path to the checked file").file(mustExist = true)
   val collapseOk by option("-c", "--collapse-ok").flag(default = false)
+  val debugMode by option("-d", "--debug").flag(default = false)
   val disableColors by option("-nc", "--no-colors").flag(default = false)
 
   override fun run() {
     val terminal = Terminal(colorsEnabled = !disableColors)
-    val baseline = LogFile(this.baselinePath.bufferedReader())
-    val checked = LogFile(this.checkedPath.bufferedReader())
-    val differ = Differ.buildDiffer(baseline, checked)
+    val differ = Differ()
+
+    //
+    // Loading of the files
+    //
+    if (debugMode) {
+      terminal.endLine() // We need additional space first
+      differ.onLineLoaded { logType, logLine ->
+        val lineNumber = logLine.lineNumber
+        val timestampEpoch = logLine.timestamp.actualEpoch
+
+        if (lineNumber % 100 == 0) {
+          when (logType) {
+            LogType.BASELINE -> {
+              terminal.clearLine()
+              terminal.write("Loaded line $lineNumber from Baseline $timestampEpoch")
+              terminal.flush()
+            }
+            LogType.CHECKED -> {
+              terminal.clearLine()
+              terminal.write("Loaded line $lineNumber from Checked $timestampEpoch")
+              terminal.flush()
+            }
+          }
+        }
+      }
+    }
+
+    val baseline = differ.loadBaseline(this.baselinePath)
+    val checked = differ.loadChecked(this.checkedPath)
+
+    //
+    // Handling of line numbers
+    //
     var lineNumber = 1
 
     differ.onOk { self, _ ->
@@ -129,7 +176,7 @@ class DiffCommand : CliktCommand() {
       lineNumber += 1
     }
 
-    differ.resolve()
+    differ.compareLogs(baseline, checked)
   }
 }
 

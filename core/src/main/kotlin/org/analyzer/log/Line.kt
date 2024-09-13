@@ -17,7 +17,7 @@ class LogLine(
   public val patternID: PatternID?
     get() = innerPatternID
 
-  public val timestamp = Timestamp(this, timestampFormat)
+  public val timestamp = Timestamp(this.line, timestampFormat)
   public val pattern: String?
     get() =
         if (this.patternID == null) {

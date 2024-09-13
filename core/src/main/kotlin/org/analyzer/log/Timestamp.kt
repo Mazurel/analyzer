@@ -10,6 +10,15 @@ private val timestampSurroundings: List<Pair<Char, Char>> =
         Pair('<', '>'),
     )
 
+private fun doesStringContainSurrounding(str: String): Boolean {
+  timestampSurroundings.forEach { (s1, s2) ->
+    if (str.contains(s1) || str.contains(s2)) {
+      return true
+    }
+  }
+  return false
+}
+
 data class TimestampSubtokens(
     private val text: String,
     private var subtokenIndex: Int = 5,
@@ -20,11 +29,11 @@ data class TimestampSubtokens(
   private val maxJ = timestampSurroundings.size
 
   init {
-    subtokenIndex = min(subtokenIndex, this.tokens.size - 1)
-    nextToken = null
-    while (!isLastState() && nextToken == null) {
-      nextToken = tokenByState()
-      nextState()
+    this.subtokenIndex = min(this.subtokenIndex, this.tokens.size - 1)
+
+    this.nextToken = this.tokenByState()
+    while (this.nextToken == null && !this.isLastState()) {
+      this.nextToken = this.nextState()
     }
   }
 
@@ -49,7 +58,7 @@ data class TimestampSubtokens(
   }
 
   override operator fun hasNext(): Boolean {
-    return nextToken != null && !isLastState()
+    return this.nextToken != null && !isLastState()
   }
 
   public fun current(): String {
@@ -57,42 +66,53 @@ data class TimestampSubtokens(
   }
 
   override operator fun next(): String {
-    val result = nextToken!!
+    val result = this.nextToken!!
 
-    nextToken = null
-    while (nextToken == null && !isLastState()) {
-      nextToken = tokenByState()
-      nextState()
+    this.nextToken = null
+    while (this.nextToken == null && !this.isLastState()) {
+      this.nextToken = this.nextState()
     }
 
     return result
   }
 
   private fun tokenByState(): String? {
-    if (surroundingsIndex == 0) {
-      return tokens.slice(0..subtokenIndex).joinToString(" ")
+    var token = this.tokens.slice(0..subtokenIndex).joinToString(" ")
+
+    if (!doesStringContainSurrounding(token)) {
+      return when (surroundingsIndex) {
+        0 -> token
+        else -> null
+      }
     }
 
-    val token = tokens.slice(0..subtokenIndex).joinToString(" ")
-    if (token.length <= 2) {
+    if (surroundingsIndex > 0) {
+      if (token.length <= 2) {
+        return null
+      }
+
+      val (a, b) = timestampSurroundings[surroundingsIndex - 1]
+      if (token.first() == a && token.last() == b) {
+        token = token.slice(1..token.length - 2)
+      } else {
+        return null
+      }
+    } else {
       return null
     }
 
-    val (a, b) = timestampSurroundings[surroundingsIndex - 1]
-    if (token.first() == a && token.last() == b) {
-      return token.slice(1..token.length - 2)
-    }
-
-    return null
+    return token
   }
 
-  private fun nextState() {
+  private fun nextState(): String? {
     if (surroundingsIndex >= maxJ) {
       surroundingsIndex = 0
       subtokenIndex -= 1
     } else {
       surroundingsIndex += 1
     }
+
+    return this.tokenByState()
   }
 
   private fun isLastState(): Boolean {
@@ -111,7 +131,7 @@ private fun pushSubtokenPattern(pattern: TimestampSubtokens) {
   cyclicTimestampSubtokenPatterns.add(pattern)
 }
 
-class Timestamp(private val line: LogLine, private val timestampFormat: String? = null) {
+class Timestamp(private val line: String, private val timestampFormat: String? = null) {
   // ... how did it become so convoluted ???
   //
   // TODO: Using LogFormat
@@ -119,7 +139,7 @@ class Timestamp(private val line: LogLine, private val timestampFormat: String? 
   private var timestampString = ""
 
   public val nonTimestampString
-    get() = TimestampSubtokens.textMinusSubtoken(line.content, timestampString)
+    get() = TimestampSubtokens.textMinusSubtoken(line, timestampString)
 
   public val string
     get() = timestampString
@@ -130,7 +150,7 @@ class Timestamp(private val line: LogLine, private val timestampFormat: String? 
     get() = if (injectedEpoch != null) injectedEpoch else actualEpoch
 
   private fun generateSubTokens(): Sequence<String> {
-    return TimestampSubtokens(line.content).asSequence()
+    return TimestampSubtokens(line).asSequence()
   }
 
   private fun tryExtractEpoch(from: String): Double? {
@@ -146,21 +166,26 @@ class Timestamp(private val line: LogLine, private val timestampFormat: String? 
       }
     }
 
-    for (formatter in dateFormatters) {
-      if (timestampVal != null) {
-        break
-      }
+    if (timestampVal == null) {
+      for (formatter in dateFormatters) {
+        if (timestampVal != null) {
+          break
+        }
 
-      formatter.parse(from).let {
-        if (it != null) {
-          timestampVal = it
+        val p = formatter.pattern
+        formatter.parse(from).let {
+          if (it != null) {
+            timestampVal = it
+          }
         }
       }
     }
 
-    try {
-      timestampVal = from.toDouble()
-    } catch (ex: NumberFormatException) {}
+    if (timestampVal == null) {
+      try {
+        timestampVal = from.toDouble()
+      } catch (ex: NumberFormatException) {}
+    }
 
     if (timestampVal != null) {
       this.timestampString = from
@@ -171,7 +196,7 @@ class Timestamp(private val line: LogLine, private val timestampFormat: String? 
 
   private fun extractEpoch(): Double? {
     for (potentialPattern in cyclicTimestampSubtokenPatterns.iterator()) {
-      this.tryExtractEpoch(potentialPattern.copy(text = line.content).current()).let {
+      this.tryExtractEpoch(potentialPattern.copy(text = line).current()).let {
         if (it != null) {
           return it
         }

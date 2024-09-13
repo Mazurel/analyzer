@@ -27,7 +27,7 @@ class LogFile(
   }
 
   init {
-    lines = this.loadLines(inputFile, lineLoadedCallback)
+    this.lines = this.loadLines(inputFile, lineLoadedCallback)
     this.fillTimestamps()
   }
 

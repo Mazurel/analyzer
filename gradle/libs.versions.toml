@@ -22,8 +22,6 @@ picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "pico
 
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 
-jgrapht = { module = "org.jgrapht:jgrapht-core", version = "1.5.2" }
-
 [bundles]
 
 [plugins]
