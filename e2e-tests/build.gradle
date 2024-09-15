@@ -28,3 +28,4 @@ task e2eRegression {
     group = "verification"
     description = "Run all e2e tests"
 }
+test.finalizedBy e2eRegression
