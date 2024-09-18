@@ -1,2 +1,3 @@
-data/**/*.predicted.csv
+data/**/*.csv
 benchmark_result.txt
+tables.tex

@@ -1,93 +1,91 @@
 package org.analyzer.kotlin.console
 
-import com.varabyte.kotter.foundation.*
-import com.varabyte.kotter.foundation.input.*
-import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.runtime.render.*
-import com.varabyte.kotter.terminal.system.SystemTerminal
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.types.enum
+import com.github.ajalt.clikt.parameters.types.file
 import kotlin.io.path.bufferedReader
 import kotlin.io.path.bufferedWriter
 import org.analyzer.kotlin.log.LogLine
-import org.analyzer.kotlin.log.parsers.DrainParser
+import org.analyzer.kotlin.log.parsers.LogParserType
+import org.analyzer.kotlin.terminal.Terminal
 
-inline fun perform_benchmark(args: Arguments, reportStatus: (String) -> Unit) {
-  try {
-    val inFileName = args.inputFile!!.toAbsolutePath().normalize()
-    val outFileName = args.outputFile!!.toAbsolutePath().normalize()
+enum class ExitCode(val code: Int) {
+  TIMESTAMP_FOUND(0),
+  TIMESTAMP_NOT_FOUND(1),
+  INTERNAL_ERROR(2)
+}
 
-    val dictParser = DrainParser()
-    val logLines =
-        inFileName.bufferedReader().readLines().mapIndexed { i, line ->
-          LogLine(line, i + 1, parser = dictParser)
-        }
+class BenchmarkCommand : CliktCommand() {
+  val inputPath by argument().file(mustExist = true)
+  val destinationPath by argument().file(mustExist = false)
+  val parserType by argument().enum<LogParserType>()
 
-    if (logLines.size == 0) {
-      reportStatus("Input file is empty ? No lines found at ${inFileName.toString()}")
-      return
+  val logLines: Lazy<List<LogLine>> = lazy {
+    val inFileName = this.inputPath.normalize()
+    inFileName.bufferedReader().readLines().mapIndexed { i, line ->
+      LogLine(line, i + 1, parser = parserType.parser)
     }
-
-    val outFile = outFileName.bufferedWriter()
-    Csv(logLines).writeFile(outFile)
-    outFile.close()
-    val ft = logLines[0].timestamp.string != ""
-    reportStatus("Success ! Timestamp Extracted = $ft")
-  } catch (err: Exception) {
-    val stackTraceStr = err.stackTraceToString()
-    reportStatus("Failed with error: $err\nStack trace:\n$stackTraceStr")
   }
-}
 
-fun tui_ui(args: Arguments): Int {
-  val errs = args.collectErrors()
-  session(
-      terminal =
-          listOf(
-                  { SystemTerminal() },
-                  // { VirtualTerminal.create() },
-              )
-              .firstSuccess()) {
-        var status by liveVarOf("")
-        section {
-              bold { textLine("== Dict Parser benchmark ==") }
-              for (err in errs) {
-                red(isBright = true) { textLine("- $err") }
-              }
-              if (status.length > 0) {
-                textLine(status)
-              }
-            }
-            .runUntilSignal {
-              if (errs.size > 0) {
-                signal()
-              } else {
-                perform_benchmark(args) { status = it }
-                signal()
-              }
-            }
+  fun isTimestampFound(): Boolean {
+    return this.logLines.value[0].timestamp.string != ""
+  }
+
+  fun terminate(exitCode: ExitCode) {
+    System.exit(exitCode.code)
+  }
+
+  override fun run() {
+    val terminal = Terminal()
+
+    try {
+      val outFileName = this.destinationPath.normalize()
+
+      if (this.logLines.value.size == 0) {
+        terminal.session {
+          red { write("Input file is empty? No lines found!") }
+          endLine()
+        }
+        this.terminate(ExitCode.INTERNAL_ERROR)
       }
-  return 0
+
+      outFileName.bufferedWriter().let {
+        Csv(this.logLines.value).writeFile(it)
+        it.close()
+      }
+
+      when (this.isTimestampFound()) {
+        false -> {
+          terminal.session {
+            write("Success ! Timestamp Extracted = ")
+            red { write("no") }
+            endLine()
+          }
+          this.terminate(ExitCode.TIMESTAMP_NOT_FOUND)
+        }
+        true -> {
+          terminal.session {
+            write("Success ! Timestamp Extracted = ")
+            green { write("yes") }
+            endLine()
+          }
+          this.terminate(ExitCode.TIMESTAMP_FOUND)
+        }
+      }
+    } catch (err: Exception) {
+      val stackTraceStr = err.stackTraceToString()
+      terminal.session {
+        red { write("Failed with error: $err") }
+        endLine()
+        write("Stack trace:")
+        endLine()
+        write("$stackTraceStr")
+        endLine()
+      }
+      this.terminate(ExitCode.INTERNAL_ERROR)
+    }
+  }
 }
 
-fun cli_ui(args: Arguments): Int {
-  val errs = args.collectErrors()
-  for (err in errs) {
-    println("- $err")
-  }
-  if (errs.size > 0) {
-    return 1
-  }
-  perform_benchmark(args) { println(it) }
-  return 0
-}
-
-fun main(args: Array<String>) {
-  val inArguments = Arguments().fetchArguments(args)
-
-  var exit_code: Int
-  try {
-    exit_code = tui_ui(inArguments)
-  } catch (err: java.lang.IllegalStateException) {
-    exit_code = cli_ui(inArguments)
-  }
-  System.exit(exit_code)
-}
+fun main(args: Array<String>) = BenchmarkCommand().main(args)

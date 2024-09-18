@@ -18,13 +18,12 @@ testDirs.each { testDir ->
     }
     testTask.group = "E2E Tests"
     testTask.description = "Run e2e tests for ${testName}"
-    testTask.dependsOn differ:build
+    testTask.mustRunAfter differ:build
     testTasks << testTask
 }
 
 task e2eRegression {
     dependsOn testTasks
-    mustRunAfter test
     group = "verification"
     description = "Run all e2e tests"
 }
