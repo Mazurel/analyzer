@@ -70,13 +70,14 @@ public class Terminal(public val colorsEnabled: Boolean = false) {
       this.ansiStyle(style)
     }
     this.scope()
-    this.appliedStyles.dropLast(1)
+    this.appliedStyles.removeAt(this.appliedStyles.size - 1)
     this.resetStyle()
     for (restorableStyles in this.appliedStyles) {
       for (style in restorableStyles) {
         this.ansiStyle(style)
       }
     }
+    this.flush()
   }
 
   public inline fun bold(crossinline scope: Terminal.() -> Unit) {
