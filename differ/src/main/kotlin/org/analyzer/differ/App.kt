@@ -5,6 +5,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
+import kotlin.math.absoluteValue
 import org.analyzer.kotlin.terminal.Terminal
 
 class DiffCommand : CliktCommand() {
@@ -28,7 +29,7 @@ class DiffCommand : CliktCommand() {
       terminal.endLine() // We need additional space first
       differ.onLineLoaded { logType, logLine ->
         val lineNumber = logLine.lineNumber
-        val timestampEpoch = logLine.timestamp.actualEpoch
+        val timestampEpoch = logLine.timestamp.string
 
         if (lineNumber % 100 == 0) {
           when (logType) {
@@ -55,15 +56,45 @@ class DiffCommand : CliktCommand() {
     //
     var lineNumber = 1
 
-    differ.onOk { self, _ ->
+    differ.onOk { self, other ->
       val lineNumberStr = lineNumber.toString().padStart(5, ' ')
-      if (!collapseOk) {
-        terminal.bold { write(lineNumberStr) }
-        terminal.separate()
-        terminal.green { write("Ok") }
-        terminal.separate()
-        terminal.write(self.content.trimEnd())
-        terminal.endLine()
+      val selfTime = self.timestamp.epoch!! // safety: should be never null after matching
+      val otherTime = other.timestamp.epoch!! // safety: should be never null after matching
+      val timeDifference = (selfTime - otherTime).absoluteValue
+      val timeConsideredTheSame = timeDifference < 0.001
+      val contentTheSame = self.content == other.content
+
+      if (timeConsideredTheSame) {
+        if (!(collapseOk && contentTheSame)) {
+          terminal.session {
+            bold { write(lineNumberStr) }
+            separate()
+            green { write("Ok") }
+            separate()
+            write(self.content.trimEnd())
+            if (!contentTheSame) {
+              separate()
+              faint { write("Baseline: ${other.content}") }
+            }
+            endLine()
+          }
+        }
+      } else {
+        terminal.session {
+          bold { write(lineNumberStr) }
+          separate()
+          yellow { write("Incorrect Time") }
+          separate()
+          write(self.content.trimEnd())
+          separate()
+          // TODO: Add a way to get units from timestamp !
+          faint { write("Time difference |$selfTime - $otherTime| = $timeDifference") }
+          if (!contentTheSame) {
+            separate()
+            faint { write("Baseline: ${other.content}") }
+          }
+          endLine()
+        }
       }
       lineNumber += 1
     }

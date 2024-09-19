@@ -46,6 +46,9 @@ def get_dataset_names(results) -> list[str]:
     return list(results.keys())
 
 def into_table(dataset_name: str, results: dict[str, dict[str, Any]]) -> str:
+    def format_field(obj: object):
+        return f"\\texttt{{{str(obj)}}}"
+
     heading_fields = ["parser"] + list(results[PARSER_NAMES[0]].keys())
     tabular_env_setting = " c " * len(heading_fields)
     tex_heading = " & ".join([field.replace("_", "\\_") for field in heading_fields])
@@ -54,7 +57,7 @@ def into_table(dataset_name: str, results: dict[str, dict[str, Any]]) -> str:
     for parser_name in PARSER_NAMES:
         table_content += f"\\textbf{{{parser_name}}} & "
         parser_results = results[parser_name]
-        table_content += " & ".join([str(parser_results[field_name]) for field_name in heading_fields if field_name != "parser"])
+        table_content += " & ".join([format_field(parser_results[field_name]) for field_name in heading_fields if field_name != "parser"])
         table_content += "\\\\\n\\hline\n"
 
     return textwrap.dedent(f"""

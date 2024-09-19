@@ -98,8 +98,8 @@ public class DictParser(val dictionary: AvailableDictionaries = AvailableDiction
   private val patterns: MutableList<DictPattern> = mutableListOf()
   private val tokenizer =
       Tokenizer()
-          .withDiscardableSymbols(",", ".", "[", "]", "<", ">", "?", ":", ";")
-          .withSeparators(" ", ",", "=")
+          .withDiscardableSymbols(",", ".", "[", "]", "<", ">", "?", ":", ";", "|")
+          .withSeparators(" ", ",", "=", "|", "/")
 
   public val patternsAmount: Int
     get() = patterns.size

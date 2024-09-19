@@ -28,6 +28,7 @@ private val dateFormats =
         "dd.MM.yyyy",
         "MM/dd/yyyy",
         "yyyy-MM-dd",
+        "yyyy-MM-dd HH:mm:ss,SSS",
         "MM-dd HH:mm:ss", // 03-17 16:13:38
         "MM-dd HH:mm:ss.SSS", // 03-17 16:13:38.811
         "EEE MMM dd HH:mm:ss yyyy", // Sun Dec 04 04:47:44 2005
@@ -86,7 +87,7 @@ class TimestampFormatter(public val pattern: String) {
     try {
       return LocalDateTime.parse(potentialTimestamp, formatter)
           .toInstant(ZoneOffset.UTC)
-          .getEpochSecond()
+          .toEpochMilli()
           .toDouble()
     } catch (ex: DateTimeParseException) {}
 

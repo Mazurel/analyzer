@@ -3,11 +3,13 @@ package org.analyzer.kotlin.terminal
 public enum class ANSIStyle(val value: Int) {
   RESET(0),
   BOLD(1),
+  FAINT(2),
   BLACK(30),
   RED(31),
   GREEN(32),
   YELLOW(33),
-  BLUE(34)
+  BLUE(34),
+  BRIGHT_YELLOW(93),
 }
 
 public enum class ANSICommand(val value: String) {
@@ -90,6 +92,14 @@ public class Terminal(public val colorsEnabled: Boolean = false) {
 
   public inline fun green(crossinline scope: Terminal.() -> Unit) {
     this.scopedStyle(ANSIStyle.GREEN) { this.scope() }
+  }
+
+  public inline fun yellow(crossinline scope: Terminal.() -> Unit) {
+    this.scopedStyle(ANSIStyle.BRIGHT_YELLOW) { this.scope() }
+  }
+
+  public inline fun faint(crossinline scope: Terminal.() -> Unit) {
+    this.scopedStyle(ANSIStyle.FAINT) { this.scope() }
   }
 
   public fun clearLine() {

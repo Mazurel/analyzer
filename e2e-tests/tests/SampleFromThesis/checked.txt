@@ -1,0 +1,7 @@
+[0.4] Error: Exception 2
+[0.8] Error: Exception 1
+[1.5] Warning: Program 1 slowed down
+[2.0] Warning: Program 4 slowed down
+[3.0] Periodic Service Diagnostics
+[4.0] Warning: Program 2 slowed down
+[6.0] Periodic Service Diagnostics

@@ -172,7 +172,6 @@ class Timestamp(private val line: String, private val timestampFormat: String? =
           break
         }
 
-        val p = formatter.pattern
         formatter.parse(from).let {
           if (it != null) {
             timestampVal = it
