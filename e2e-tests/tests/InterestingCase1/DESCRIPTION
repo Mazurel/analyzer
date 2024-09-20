@@ -1,0 +1,2 @@
+Checks if switched event timings will be found.
+Only events that were moved around should be detected.

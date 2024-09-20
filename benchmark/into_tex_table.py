@@ -45,7 +45,7 @@ def load_benchmark_results(path: Path):
 def get_dataset_names(results) -> list[str]:
     return list(results.keys())
 
-def into_table(dataset_name: str, results: dict[str, dict[str, Any]]) -> str:
+def into_table(idx: int, dataset_name: str, results: dict[str, dict[str, Any]]) -> str:
     def format_field(obj: object):
         return f"\\texttt{{{str(obj)}}}"
 
@@ -60,18 +60,19 @@ def into_table(dataset_name: str, results: dict[str, dict[str, Any]]) -> str:
         table_content += " & ".join([format_field(parser_results[field_name]) for field_name in heading_fields if field_name != "parser"])
         table_content += "\\\\\n\\hline\n"
 
-    return textwrap.dedent(f"""
-\\begin{{table}}[H]
-\\begin{{center}}
-\\begin{{tabular}}{{|{tabular_env_setting}|}}
-\\hline
-{tex_heading} \\\\ [0.5ex]
-\\hline\\hline
+    return textwrap.dedent(rf"""
+\begin{{table}}[H]
+\begin{{center}}
+\begin{{tabular}}{{|{tabular_env_setting}|}}
+\hline
+{tex_heading} \\ [0.5ex]
+\hline\hline
 {table_content.strip()}
-\\end{{tabular}}
-\\caption{{Wyniki jakościowe dla zbioru danych {dataset_name}}}
-\\end{{center}}
-\\end{{table}}
+\end{{tabular}}
+\caption{{Wyniki jakościowe dla zbioru danych {dataset_name}}}
+\end{{center}}
+\label{{tab:qual-table-add-{idx + 1}}}
+\end{{table}}
     """)
 
 if __name__ == "__main__":
@@ -83,5 +84,5 @@ if __name__ == "__main__":
     all_dataset_names = get_dataset_names(all_benchmark_results)
 
     with open(dir_path / "tables.tex", "w") as f:
-        for dataset_name in all_dataset_names:
-            print(into_table(dataset_name, all_benchmark_results[dataset_name]), file=f)
+        for i, dataset_name in enumerate(all_dataset_names):
+            print(into_table(i, dataset_name, all_benchmark_results[dataset_name]), file=f)

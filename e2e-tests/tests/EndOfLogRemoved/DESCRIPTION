@@ -1,0 +1,1 @@
+Checks if when two files are the same, except last few lines, these lines should get reported.
