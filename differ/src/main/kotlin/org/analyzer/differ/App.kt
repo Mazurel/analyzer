@@ -86,9 +86,9 @@ class DiffCommand : CliktCommand() {
           yellow { write("Incorrect Time") }
           separate()
           write(self.content.trimEnd())
-          separate()
           // TODO: Add a way to get units from timestamp !
-          faint { write("Time difference |$selfTime - $otherTime| = $timeDifference") }
+          // separate()
+          // faint { write("Time difference |$selfTime - $otherTime| = $timeDifference") }
           if (!contentTheSame) {
             separate()
             faint { write("Baseline: ${other.content}") }

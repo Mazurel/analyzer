@@ -1,4 +1,4 @@
-    1 | Incorrect Time | [0.4] Error: Exception 2 | Time difference |0.4 - 0.0| = 0.4 | Baseline: [0.0] Error: Exception 1
-    2 | Incorrect Time | [0.8] Error: Exception 1 | Time difference |0.8 - 1.0| = 0.19999999999999996 | Baseline: [1.0] Error: Exception 2
+    1 | Incorrect Time | [0.4] Error: Exception 2 | Baseline: [0.0] Error: Exception 1
+    2 | Incorrect Time | [0.8] Error: Exception 1 | Baseline: [1.0] Error: Exception 2
     3 | Additional | [1.5] Warning: Program 1 slowed down
-    6 | Incorrect Time | [4.0] Warning: Program 2 slowed down | Time difference |4.0 - 4.5| = 0.5 | Baseline: [4.5] Warning: Program 2 slowed down
+    6 | Incorrect Time | [4.0] Warning: Program 2 slowed down | Baseline: [4.5] Warning: Program 2 slowed down
