@@ -19,6 +19,7 @@ class DiffCommand : CliktCommand() {
   val disableColors by option("-nc", "--no-colors").flag(default = false)
 
   override fun run() {
+    val diffMinTreshold = 0.03
     val terminal = Terminal(colorsEnabled = !disableColors)
     val differ = Differ()
 
@@ -51,6 +52,24 @@ class DiffCommand : CliktCommand() {
     val baseline = differ.loadBaseline(this.baselinePath)
     val checked = differ.loadChecked(this.checkedPath)
 
+    val baselineThreshold =
+        {
+          val firstLine = baseline.lines.first().timestamp.epoch!!
+          val lastLine = baseline.lines.last().timestamp.epoch!!
+          val totalTimestampDifference = lastLine - firstLine
+          totalTimestampDifference * diffMinTreshold
+        }()
+
+    val checkedThreshold =
+        {
+          val firstLine = checked.lines.first().timestamp.epoch!!
+          val lastLine = checked.lines.last().timestamp.epoch!!
+          val totalTimestampDifference = lastLine - firstLine
+          totalTimestampDifference * diffMinTreshold
+        }()
+
+    val timeEqualThreshold = maxOf(baselineThreshold, checkedThreshold)
+
     //
     // Handling of line numbers
     //
@@ -61,15 +80,20 @@ class DiffCommand : CliktCommand() {
       val selfTime = self.timestamp.epoch!! // safety: should be never null after matching
       val otherTime = other.timestamp.epoch!! // safety: should be never null after matching
       val timeDifference = (selfTime - otherTime).absoluteValue
-      val timeConsideredTheSame = timeDifference < 0.001
+      val timeConsideredTheSame = timeDifference < timeEqualThreshold
       val contentTheSame = self.content == other.content
 
       if (timeConsideredTheSame) {
-        if (!(collapseOk && contentTheSame)) {
+        if (!collapseOk) {
+
           terminal.session {
             bold { write(lineNumberStr) }
             separate()
-            green { write("Ok") }
+            if (contentTheSame) {
+              green { write("Perfect") }
+            } else {
+              green { write("Ok") }
+            }
             separate()
             write(self.content.trimEnd())
             if (!contentTheSame) {
