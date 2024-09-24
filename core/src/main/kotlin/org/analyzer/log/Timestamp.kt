@@ -76,7 +76,7 @@ data class TimestampSubtokens(
     return result
   }
 
-  private fun tokenByState(): String? {
+  public fun tokenByState(): String? {
     var token = this.tokens.slice(0..subtokenIndex).joinToString(" ")
 
     if (!doesStringContainSurrounding(token)) {
@@ -167,7 +167,7 @@ class Timestamp(private val line: String, private val timestampFormat: String? =
     }
 
     if (timestampVal == null) {
-      for (formatter in dateFormatters) {
+      for (formatter in dateFormattersIterate()) {
         if (timestampVal != null) {
           break
         }
@@ -195,7 +195,7 @@ class Timestamp(private val line: String, private val timestampFormat: String? =
 
   private fun extractEpoch(): Double? {
     for (potentialPattern in cyclicTimestampSubtokenPatterns.iterator()) {
-      this.tryExtractEpoch(potentialPattern.copy(text = line).current()).let {
+      this.tryExtractEpoch(potentialPattern.copy(text = line).tokenByState()!!).let {
         if (it != null) {
           return it
         }
