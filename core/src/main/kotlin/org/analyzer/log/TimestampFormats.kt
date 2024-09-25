@@ -10,8 +10,7 @@ import java.time.temporal.ChronoField
 import java.util.Locale
 
 // This is a mechanism for date formatters cache
-// TODO: It would be way better if it was thread safe, but it would require making it more visible
-// outside most likely ...
+// TODO: This needs to be refactored (should be visible from `LogFile`)
 private class SortedTimestampFormats {
   private val dateFormats =
       listOf(
@@ -24,8 +23,9 @@ private class SortedTimestampFormats {
           "yyyy/MM/dd HH:mm:ss",
           "dd-MM-yyyy HH:mm:ss",
           "MM/dd/yyyy HH:mm:ss",
+          "dd/MM/yy HH:mm:ss",
           "HH:mm:ss dd/MM/yyyy",
-          "dd/MMM/yyyy",
+          "dd/MM/yyyy",
           "yyyy/MM/dd",
           "MM-dd-yyyy",
           "dd-MM-yyyy",
@@ -39,10 +39,19 @@ private class SortedTimestampFormats {
           "MM.dd HH:mm:ss", // 10.30 16:49:06
           "yyyy-MM-dd_HH:mm:ss", // 2017-05-16_13:53:08
           "yyyy-MM-dd HH:mm:ss.SSS", // 2017-05-16 00:00:00.008
+          "MM.dd HH:mm:ss", // 10.30 16:49:06
+          "MMM dd HH:mm:ss", // Jun 14 15:16:02
+          "MMM d HH:mm:ss", // Sun 1 21:10:12
       )
 
   private val sortedDateFormats: MutableList<TimestampFormatter> =
-      dateFormats.map { TimestampFormatter(it) }.toMutableList()
+      dateFormats
+          .sortedBy {
+            // NOTE: We want to check for longest patterns first
+            -it.length
+          }
+          .map { TimestampFormatter(it) }
+          .toMutableList()
 
   init {
     this.resort()

@@ -27,11 +27,11 @@ class LogLine(
         }
 
   init {
-    if (parser != null) {
+    if (this.parser != null) {
       // If parser is available, use it
-      innerPatternID = parser.learnLine(line)
+      innerPatternID = parser.learnLine(this.timestamp.nonTimestampString)
       if (innerPatternID == null) {
-        innerPatternID = parser.extractPattern(line)
+        innerPatternID = parser.extractPattern(this.timestamp.nonTimestampString)
       }
     }
   }
